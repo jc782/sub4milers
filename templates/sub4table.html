@@ -1,0 +1,74 @@
+<!-- templates/home.html -->
+
+{% extends 'base.html' %}
+{% load static %} 
+
+{% block title %} Home {% endblock %}
+{% block content %}
+    
+<script src="https://code.jquery.com/jquery-3.6.3.slim.min.js"></script>
+<script src="{% static '/js/tablesearch.js' %}"></script>   <!-- new -->
+
+<style>
+	* {
+	  box-sizing: border-box;
+	}
+
+	.myInput {
+	  background-image: url('searchicon.png');
+	  background-position: 10px 12px;
+	  background-repeat: no-repeat;
+	  width: 100%;
+	  font-size: 16px;
+	  padding: 12px 20px 12px 40px;
+	  border: 1px solid #ddd;
+	  margin-bottom: 12px;
+	}
+
+	</style>
+
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-1">
+
+    </div>
+    <div class="col-sm-10">
+      Last updated: 22nd July 2023
+      <br>
+      <input type="text" class="myInput" onkeyup="searchTable(this.value, 'list')" placeholder="Search full table..." title="Search">
+			
+      <table id="list" class="table">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">First Sub 4 Time</th>
+            <th scope="col">First Sub 4 Date</th>
+            <th scope="col">Subsequent PB Time</th>
+            <th scope="col">Country</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sub4 in athletes %}
+          <tr>
+            <th scope="row">{{ forloop.counter }}</th>
+            <td>{{ sub4.name | title }}</td>
+            <td>{{ sub4.firstTime | time:"i:s" }}:{{ sub4.firstTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
+            <td>{{ sub4.firstDate }}</td>
+            <td>{{ sub4.pbTime | time:"i:s" }}:{{ sub4.pbTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
+            <td>{{ sub4.countries }}</td> 
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+ 
+    </div>
+
+    <div class="col-sm-1">
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
