@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 def viewSub4(request):
     the_past = datetime.datetime.now().date()
 
-    athletes = AthleteSub4.objects.all().annotate(first_Date=Coalesce('firstDate', Value(the_past))).order_by('first_Date').annotate(row_number=Window(expression=RowNumber()))
+    athletes = AthleteSub4.objects.all().annotate(first_Date=Coalesce('firstDate', Value(the_past))).order_by('first_Date')
     context = {}
     context["athletes"] = athletes
     return render(request, 'sub4table.html', context)
