@@ -9,15 +9,18 @@ import re
 def startDjango():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sub4milers.settings")
     django.setup()
-    DEBUG = config('DEBUG', cast=bool)
-
+    
 
 startDjango()
 from sub4.models import AthleteSub4 
 
 # CSV format:
 # id,name,athlcountries,firstTime,indoor,date,pb,datepb
-df = pd.read_csv("/home/josh/sub4milers/static/data/sub4_complete22July.csv")
+DEBUG = config('DEBUG', cast=bool)
+if DEBUG:
+    df = pd.read_csv("/home/josh/sub4milers/static/data/sub4_complete22July.csv")
+else:
+    df = pd.read_csv("/home/joshcarr/sub4milers/static/data/sub4_complete22July.csv")
 
 for runner in df.itertuples():
     name = runner.name
