@@ -26,6 +26,7 @@
   }
 </style>
 
+
 Last updated: 22nd July 2023
 <br>
 <input type="text" class="myInput" onkeyup="searchTable(this.value, 'list')" placeholder="Search full table..."
@@ -36,10 +37,7 @@ Last updated: 22nd July 2023
     <tr>
       <th scope="col">#</th>
       <th scope="col">Name</th>
-      <th scope="col">First Sub 4 Time</th>
-      <th scope="col">First Sub 4 Date</th>
-      <th scope="col">Subsequent PB Time</th>
-      <th scope="col">Country</th>
+      <th scope="col">Best Sub 4 Time</th>
     </tr>
   </thead>
   <tbody>
@@ -47,12 +45,11 @@ Last updated: 22nd July 2023
     <tr>
       <th scope="row">{{ forloop.counter }}</th>
       <td>{{ sub4.name | title }}</td>
-      <td>{{ sub4.firstTime | time:"i:s" }}:{{ sub4.firstTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
-      <td>{{ sub4.firstDate }}</td>
-      <td>{{ sub4.pbTime | time:"i:s" }}:{{ sub4.pbTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
-      <td>{{ sub4.countries }}</td>
+      <td>{{ sub4.bestTime | time:"i:s" }}:{{ sub4.firstTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
+
+
 {% endblock %}
