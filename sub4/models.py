@@ -10,10 +10,17 @@ class AthleteSub4(models.Model):
     firstTime = models.TimeField(null=False, blank=False)
     firstDate = models.DateField(null=True, blank=True) # date may be unknown
     firstIndoor = models.BinaryField(null=True, blank=True)
-    pbTime = models.TimeField(null=True, blank=False)
+    pbTime = models.TimeField(null=True, blank=True)
     pbDate = models.DateField(null=True, blank=True) # date may be unknown
     pbIndoor = models.BinaryField(null=True, blank=True)
     countries = models.CharField(max_length = 100, blank=True, null=True)
+
+    def bestTime(self):
+          if self.pbTime:
+                bestTime = self.pbTime
+          else:
+                bestTime = self.firstTime
+          return bestTime
         
     def __str__(self):
             """
