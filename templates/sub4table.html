@@ -38,8 +38,8 @@ Last updated: 22nd July 2023
       <th scope="col">Name</th>
       <th scope="col">First Sub 4 Time</th>
       <th scope="col">First Sub 4 Date</th>
-      <th scope="col">Subsequent PB Time</th>
-      <th scope="col">Country</th>
+      <th class = "d-none d-lg-table-cell", scope="col">Subsequent PB Time</th>
+      <th class = "d-none d-lg-table-cell", scope="col">Country</th>
     </tr>
   </thead>
   <tbody>
@@ -49,8 +49,8 @@ Last updated: 22nd July 2023
       <td>{{ sub4.name | title }}</td>
       <td>{{ sub4.firstTime | time:"i:s" }}:{{ sub4.firstTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
       <td>{{ sub4.firstDate }}</td>
-      <td>{{ sub4.pbTime | time:"i:s" }}:{{ sub4.pbTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
-      <td>{{ sub4.countries }}</td>
+      <td class = "d-none d-lg-table-cell">{{ sub4.pbTime | time:"i:s" }}:{{ sub4.pbTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
+      <td class = "d-none d-lg-table-cell">{{ sub4.countries }}</td>
     </tr>
     {% endfor %}
   </tbody>
