@@ -44,8 +44,12 @@ Last updated: 22nd July 2023
     {% for sub4 in athletes %}
     <tr>
       <th scope="row">{{ forloop.counter }}</th>
-      <td>{{ sub4.name | title }}</td>
-      <td>{{ sub4.bestTime | time:"i:s" }}:{{ sub4.firstTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
+      <td class = "d-none d-lg-table-cell">{{ sub4.name | title }}</td>
+      <td class = "d-none d-lg-table-cell">{{ sub4.bestTime | time:"i:s" }}:{{ sub4.firstTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
+      <td class = "d-none d-lg-table-cell">{{ sub4.bestDate}}</td>
+      <td class = "d-none d-lg-table-cell">{{ sub4.countries | title }}</td>
+    
+      
     </tr>
     {% endfor %}
   </tbody>

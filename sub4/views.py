@@ -23,11 +23,9 @@ def viewSub4(request):
 
 def viewSub4Time(request):
     the_past = datetime.datetime.now().date()
-    ## need to order by best time instead
-
+    
     athletes = AthleteSub4.objects.all().order_by('bestTime')
 
-    #athletes = AthleteSub4.objects.all().annotate(first_Date=Coalesce('firstDate', Value(the_past))).order_by('first_Date')
     context = {}
     context["athletes"] = athletes
     return render(request, 'sub4fastest.html', context)

@@ -103,8 +103,13 @@ plt.xticks(bin_edges, bin_labels, rotation=45)
 ### Start another plot for the world countries
 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
 
-df['Country'] = df['Country'].str[2:5]
+
+df['Country'] = df['Country'].str.upper()
+df['Country'] = df['Country'].mask((df['Country']== "GER"), "DEU")
+
+
 df2 = df.groupby(['Country'])['Country'].value_counts()
+print(df2.head(10))
 
 grouped = df.groupby('Country').size()
 grouped_df = grouped.to_frame(name = 'Count').reset_index()
@@ -112,7 +117,6 @@ grouped_df['log_sub_4_milers'] = np.log10(grouped_df['Count'])
 
 cmap = plt.get_cmap('magma')  # You can choose another colormap if desired
 
-print(world.head(40))
 world = world.merge(grouped_df, left_on='iso_a3', right_on='Country', how='left')
 world['milersPP'] = world['Count'] / world['pop_est']
 
@@ -130,82 +134,5 @@ world.boundary.plot(ax=ax, linewidth=0.6, color='k')
 world.plot(column='milersPP', cmap=cmap, ax=ax, legend=True, legend_kwds={'label': "Number of Sub 4 milers per capita"})
 ax.axis('off')
 
-#plt.show()
+plt.show()
 
-### Sankey of improvement
-
-df['Time'] = df['Time'].apply(lambda x: x.hour * 3600 + x.minute * 60 + x.second)
-df['BestTime'] = df['BestTime'].apply(lambda x: x.hour * 3600 + x.minute * 60 + x.second)
-
-df['Improvement'] = df['Time'] - df['BestTime']
-
-grouped_df = df.groupby(['Time', 'BestTime'])['Improvement'].sum().reset_index()
-
-print(grouped_df.tail(30))
-
-nodes = [
-   ['id', 'label', 'color'],
-   [ 0,    'f3:59',    'blue'],
-   [ 1,    'f3:58',    'blue'],
-   [ 2,    'f3:57',    'blue'],
-   [ 3,    'f3:56',    'blue'],
-   [ 4,    'f3:55',    'blue'],
-   [ 5,    'f3:54',    'blue'],
-   [ 6,    'f3:53',    'blue'],
-   [ 7,    'f3:52',    'blue'],
-   [ 8,    'f3:51',    'blue'],
-   [ 9,    'f3:50',    'blue'],
-   [ 10,    'f3:49',    'red'],
-   [ 11,    'b3:58',    'red'],
-   [ 12,    'b3:57',    'red'],
-   [ 13,    'b3:56',    'red'],
-   [ 14,    'b3:55',    'red'],
-   [ 15,    'b3:54',    'red'],
-   [ 16,    'b3:53',    'red'],
-   [ 17,    'b3:52',    'red'],
-   [ 18,    'b3:51',    'red'],
-   [ 19,    'b3:50',    'red'],
-   [ 20,    'b3:49',    'red'],
-   
-   
-]
-links = [
-   ['Source', 'Target', 'Value', 'Link Color'],
-   [  0,          2,       4,       'grey'],
-   [  0,          3,       4,       'grey'],
-   [  0,          3,       4,       'grey'],
-   [  0,          4,       4,       'grey'],
-   [  0,          4,       4,       'grey'],
-   [  0,          5,       4,       'grey']
-]
-
-nodes_headers = nodes.pop(0)
-links_headers = links.pop(0)
-
-df_nodes = pd.DataFrame(nodes, columns = nodes_headers)
-df_links = pd.DataFrame(links, columns = links_headers)
-
-
-fig = go.Figure(data=[go.Sankey(
-   node = dict(
-      pad = 15,
-      thickness = 20,
-      line = dict(color = "black", width = 0.5),
-      label = df_nodes['label'].dropna(axis=0, how='any'),
-      color = df_nodes['color']
-   ),
-
-   link = dict(
-      source=df_links['Source'].dropna(axis=0, how='any'),
-      target=df_links['Target'].dropna(axis=0, how='any'),
-      value=df_links['Value'].dropna(axis=0, how='any'),
-      color=df_links['Link Color'].dropna(axis=0, how='any'),
-   )
-)])
-
-fig.update_layout(
-   title_text="DataFrame-Sankey diagram",
-   font_size=10
-)
-
-fig.show()

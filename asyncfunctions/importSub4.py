@@ -18,37 +18,92 @@ from sub4.models import AthleteSub4
 # id,name,athlcountries,firstTime,indoor,date,pb,datepb
 DEBUG = config('DEBUG', cast=bool)
 if DEBUG:
-    df = pd.read_csv("/home/josh/sub4milers/static/data/sub4_complete22July.csv")
+    df = pd.read_csv("/home/josh/sub4milers/static/data/sub4_101023.csv")
 else:
-    df = pd.read_csv("/home/joshcarr/sub4milers/static/data/sub4_complete22July.csv")
+    df = pd.read_csv("/home/joshcarr/sub4milers/static/data/sub4_101023.csv")
 
 for runner in df.itertuples():
-    name = runner.name
-    countries = runner.athlcountries
-    firstTime = datetime.strptime(runner.firstTime, '%M:%S.%f').time()
+    name = runner.Name
+    country = runner.Country
+    OutdoorLocation = runner.OutdoorLocation
+    IndoorLocation = runner.IndoorLocation
+
     try:
-        date = datetime.strptime(runner.date, "%Y-%m-%d")
+        firstTime = datetime.strptime(runner.FirstTime, '%M:%S.%f').time()
     except:
-        date = None
-    indoor = runner.indoor
+        firstTime = None
+
     try:
-        pbTime = datetime.strptime(runner.pb, '%M:%S.%f').time()
+        firstDate = datetime.strptime(runner.FirstDate, "%m/%d/%Y")
+    except:
+        firstDate = None
+
+    try:
+        pbTime = datetime.strptime(runner.PB, '%M:%S.%f').time()
     except:
         pbTime = None
+
     try:
-        pbDate = datetime.strptime(runner.datepb, '%Y-%M-%d')
+        pbDate = datetime.strptime(runner.PB, "%m/%d/%Y")
     except:
         pbDate = None
-        
-    print(name, firstTime, date)
+    
+    try:
+        firstTime = datetime.strptime(runner.FirstTime, '%M:%S.%f').time()
+    except:
+        firstTime = None
+
+    try:
+        DOB = datetime.strptime(runner.DOB, "%m/%d/%Y")
+    except:
+        DOB = None
+
+    try:
+        OutdoorTime = datetime.strptime(runner.OutdoorTime, '%M:%S.%f').time()
+    except:
+        OutdoorTime = None
+
+    try:
+        OutdoorDate = datetime.strptime(runner.OutdoorDate, "%m/%d/%Y")
+    except:
+        OutdoorDate = None
+
+    try:
+        IndoorTime = datetime.strptime(runner.IndoorTime, '%M:%S.%f').time()
+    except:
+        IndoorTime = None
+
+    try:
+        IndoorDate = datetime.strptime(runner.IndoorDate, "%m/%d/%Y")
+    except:
+        IndoorDate = None
+
+    try:
+        FastestTime = datetime.strptime(runner.FastestTime, '%M:%S.%f').time()
+    except:
+        FastestTime = None
+
+    try:
+        FastestDate = datetime.strptime(runner.FastestDate, "%m/%d/%Y")
+    except:
+        FastestDate = None
+
 
     athleteAdd = AthleteSub4.objects.create(
         name = name,
+        DOB = DOB,
         firstTime = firstTime,
-        #firstIndoor = indoor,
-        countries = countries,
-        firstDate = date,
+        firstDate = firstDate,
         pbTime = pbTime,
         pbDate = pbDate,
-    )
+        IndoorTime = IndoorTime,
+        IndoorDate = IndoorDate,
+        IndoorLocation = IndoorLocation,
+        OutdoorTime = OutdoorTime,
+        OutdoorDate = OutdoorDate,
+        OutdoorLocation = OutdoorLocation,
+        countries = country,
+        bestTime = FastestTime,
+        bestDate = FastestDate
+        )
 
