@@ -28,9 +28,9 @@ def viewSub4Time(request):
     return render(request, 'sub4fastest.html', context)
 
 def mostRecent(request):
-    the_past = datetime.datetime.now().date()
+    the_past = datetime.datetime(1900, 1, 1).date()
     athletes = AthleteSub4.objects.all().annotate(first_Date=Coalesce('firstDate', Value(the_past))).order_by('-first_Date')
     context = {}
     context["athletes"] = athletes
-    return render(request, 'sub4fastest.html', context)
+    return render(request, 'sub4recent.html', context)
 

@@ -94,8 +94,6 @@ for runner in df.itertuples():
         DOB = DOB,
         firstTime = firstTime,
         firstDate = firstDate,
-        pbTime = pbTime,
-        pbDate = pbDate,
         IndoorTime = IndoorTime,
         IndoorDate = IndoorDate,
         IndoorLocation = IndoorLocation,

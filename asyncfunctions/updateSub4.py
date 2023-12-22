@@ -26,7 +26,7 @@ else:
 
 for runner in df.itertuples():
     # Name is the only definite row
-    name = runner.Name.title()
+    name = runner.Name.lower()
     
     try:
         country = runner.Country
@@ -49,7 +49,7 @@ for runner in df.itertuples():
         Time = None
 
     try:
-        Date = datetime.strptime(runner.Date, "%m/%d/%Y")
+        Date = datetime.strptime(runner.Date, "%d %b %Y")
     except:
         Date = None
 
@@ -61,13 +61,11 @@ for runner in df.itertuples():
 
     athlete, created = AthleteSub4.objects.get_or_create(name = name)
 
-    print(name)
     print(DOB)
     print(Time)
-    print(country)
+    print(Date)
 
     if created:
-        print("New Name" + athlete.name)
         # new athlete entry
         athlete.DOB = DOB
         athlete.countries = country
@@ -86,7 +84,6 @@ for runner in df.itertuples():
             athlete.OutdoorTime = Time
             athlete.OutdoorLocation = Location
     else:
-        print("Updated Entry" + athlete.name)
         if Time < athlete.bestTime:
             athlete.bestDate = Date
             athlete.bestTime = Time         

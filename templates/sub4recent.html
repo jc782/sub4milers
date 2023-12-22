@@ -37,8 +37,8 @@ Last updated: 23rd December 2023
     <tr>
       <th scope="col">#</th>
       <th scope="col">Name</th>
-      <th scope="col">Best Sub 4 Time</th>
-      <th class = "d-none d-lg-table-cell", scope="col">Date Best Effort</th>
+      <th scope="col">Sub 4 Time</th>
+      <th class = "d-none d-lg-table-cell", scope="col">Date</th>
       <th class = "d-none d-lg-table-cell", scope="col">Country</th>
     </tr>
   </thead>
@@ -47,7 +47,7 @@ Last updated: 23rd December 2023
     <tr>
       <th scope="row">{{ forloop.counter }}</th>
       <td scope="row">{{ sub4.name | title }}</td>
-      <td scope="row">{{ sub4.bestTime | time:"i:s" }}:{{ sub4.bestTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
+      <td scope="row">{{ sub4.firstTime | time:"i:s" }}:{{ sub4.firstTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
       <td scope="row", class = "d-none d-lg-table-cell">{{ sub4.bestDate}}</td>
       <td scope="row", class = "d-none d-lg-table-cell">{{ sub4.countries | title }}</td>
     
