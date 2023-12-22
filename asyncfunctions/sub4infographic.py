@@ -4,6 +4,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.ticker import StrMethodFormatter
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -71,14 +73,18 @@ sns.heatmap(heatmap_data, annot=False, fmt="", mask=mask, cmap='viridis', norm=n
 month_names = [calendar.month_name[i] for i in range(1, 13)]
 plt.yticks([i + 0.5 for i in range(12)], month_names, rotation=0, fontsize=14)
 plt.xticks(rotation=90, fontsize=14)
+plt.gca().ticklabel_format(axis='both', style='plain', useOffset=False)
+
 for i, label in enumerate(plt.gca().xaxis.get_ticklabels()):
     if i % 3 != 0:
         label.set_visible(False)
 plt.xlabel('Year', fontsize=16)
 plt.ylabel('Month', fontsize=16)
-plt.title('Heatmap of Sub-4 Mile Runs by Month and Year', fontsize = 20)
+plt.title('', fontsize = 20)
+plt.title('Heatmap of Sub 4 Milers per month and year \n Data only from first time sub 4 runs', fontsize = 20)
+
 plt.subplots_adjust(bottom=0.2)
-plt.annotate('* data up until 22nd July 2023', xy=(0.5, -0.3), xycoords='axes fraction', fontsize=10, ha='center')
+plt.annotate('*Data until 13th October 2023', xy=(0.5, -0.2), xycoords='axes fraction', fontsize=10, ha='center')
 
 
 ## Start another plot of the histogram of all times run
@@ -106,6 +112,14 @@ world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
 
 df['Country'] = df['Country'].str.upper()
 df['Country'] = df['Country'].mask((df['Country']== "GER"), "DEU")
+df['Country'] = df['Country'].mask((df['Country']== "GDR"), "DEU")
+df['Country'] = df['Country'].mask((df['Country']== "POR"), "PRT")
+df['Country'] = df['Country'].mask((df['Country']== "SUI"), "CHE")
+df['Country'] = df['Country'].mask((df['Country']== "NED"), "NLD")
+df['Country'] = df['Country'].mask((df['Country']== "DEN"), "DNK")
+df['Country'] = df['Country'].mask((df['Country']== "RSA"), "ZAF")
+
+
 
 
 df2 = df.groupby(['Country'])['Country'].value_counts()

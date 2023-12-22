@@ -11,10 +11,7 @@ class AthleteSub4(models.Model):
     firstTime = models.TimeField(null=True, blank=False)
     firstDate = models.DateField(null=True, blank=True) # date may be unknown
     firstLocation = models.TextField(null=True, blank=True)
-    pbTime = models.TimeField(null=True, blank=True)
-    pbDate = models.DateField(null=True, blank=True) # date may be unknown
-    pbLocation = models.TextField(null=True, blank=True)
-    IndoorTime = models.BinaryField(null=True, blank=True)
+    IndoorTime = models.TimeField(null=True, blank=True)
     IndoorDate = models.DateField(null=True, blank=True) # date may be unknown
     IndoorLocation = models.TextField(null=True, blank=True)
     OutdoorTime = models.TimeField(null=True, blank=True)
@@ -29,5 +26,8 @@ class AthleteSub4(models.Model):
         """
         The users name (first + last) is the returned string.
         """
-        description = self.name + ' best sub 4: ' + self.bestTime.strftime("%M:%S.%f")
+        if self.bestTime:
+            description = self.name + ' best sub 4: ' + self.bestTime.strftime("%M:%S.%f")
+        else:
+            description = self.name
         return description

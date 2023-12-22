@@ -7,5 +7,7 @@ urlpatterns = [
     path('admin/', admin.site.urls), 
     path("", viewSub4, name="sub4"),
     path("fastest/", viewSub4Time, name="fastest"),
+    path("mostrecent/", mostRecent, name="mostRecent"),
+    
     
     ]
