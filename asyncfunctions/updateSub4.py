@@ -63,12 +63,12 @@ for runner in df.itertuples():
 
     athlete, created = AthleteSub4.objects.get_or_create(name = name)
 
-    print(DOB)
+    print(name)
     print(Time)
-    print(Date)
 
     if created:
         # new athlete entry
+        print('Created new entry: ', name)
         athlete.DOB = DOB
         athlete.countries = country
         athlete.firstDate = Date
@@ -86,19 +86,9 @@ for runner in df.itertuples():
             athlete.OutdoorTime = Time
             athlete.OutdoorLocation = Location
     else:
-        try:
-            if Time < athlete.bestTime:
-                athlete.bestDate = Date
-                athlete.bestTime = Time         
-                if Indoor == 1:
-                    athlete.IndoorDate = Date
-                    athlete.IndoorTime = Time
-                    athlete.IndoorLocation = Location
-                elif Indoor == 0:
-                    athlete.OutdoorDate = Date
-                    athlete.OutdoorTime = Time
-                    athlete.OutdoorLocation = Location
-        except:
+        print(Time, athlete.bestTime)
+        if Time < athlete.bestTime:
+            print(name, 'new best time')
             athlete.bestDate = Date
             athlete.bestTime = Time         
             if Indoor == 1:
