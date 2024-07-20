@@ -20,9 +20,9 @@ from sub4.models import AthleteSub4
 # id,name,athlcountries,firstTime,indoor,date,pb,datepb
 DEBUG = config('DEBUG', cast=bool)
 if DEBUG:
-    df = pd.read_csv("/home/josh/sub4milers/static/data/Indoor24_26Feb.csv")
+    df = pd.read_csv("/home/josh/sub4milers/static/data/Outdoor24_20Jul.csv")
 else:
-    df = pd.read_csv("/home/joshcarr/sub4milers/static/data/Indoor24_26Feb.csv")
+    df = pd.read_csv("/home/joshcarr/sub4milers/static/data/Outdoor24_20Jul.csv")
 
 print(df.head(50))
 
