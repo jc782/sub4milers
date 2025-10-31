@@ -10,7 +10,27 @@
 
   <title>Sub 4 Milers</title>
 
-  <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+  <!-- Standard favicons -->
+<link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon/favicon-32x32.png' %}">
+<link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon/favicon-16x16.png' %}">
+
+<!-- Apple Touch Icon -->
+<link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/favicon/apple-touch-icon.png' %}">
+
+<!-- Android / Chrome -->
+<link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/favicon/android-chrome-192x192.png' %}">
+<link rel="icon" type="image/png" sizes="512x512" href="{% static 'img/favicon/android-chrome-512x512.png' %}">
+
+<!-- Safari pinned tab -->
+<link rel="mask-icon" href="{% static 'img/favicon/safari-pinned-tab.svg' %}" color="#5bbad5">
+
+<!-- Manifest for PWA / Android -->
+<link rel="manifest" href="{% static 'img/favicon/site.webmanifest' %}">
+
+<!-- Browser theme colors -->
+<meta name="msapplication-TileColor" content="#da532c">
+<meta name="theme-color" content="#ffffff">
+
 
   <!-- Bootstrap core CSS -->
   <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
@@ -28,7 +48,7 @@
   <!-- Navigation -->
   <nav class="navbar navbar-light bg-light sticky-top">
     <div class="container">
-      <a class="navbar-brand" href="#">Sub 4 Milers</a>
+      <a class="navbar-brand" href="{% url 'sub4' %}">Sub 4 Milers</a>
       <a class="navbar-brand" href="{% url 'fastest' %}">By Fastest</a>
       <a class="navbar-brand" href="{% url 'sub4' %}">Chronological</a>
       <a class="navbar-brand" href="{% url 'mostRecent' %}">By Most Recent</a>
