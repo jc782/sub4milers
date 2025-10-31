@@ -3,7 +3,7 @@ from datetime import datetime
 from decouple import config
 import pandas as pd
 
-# python manage.py shell < asyncFunctions/updateSub4.py
+# python manage.py shell < asyncfunctions/updateSub4.py
 
 def startDjango():
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sub4milers.settings")
@@ -20,7 +20,7 @@ from sub4.models import AthleteSub4
 # id,name,athlcountries,firstTime,indoor,date,pb,datepb
 DEBUG = config('DEBUG', cast=bool)
 if DEBUG:
-    df = pd.read_csv("/home/josh/sub4milers/static/data/Outdoor24_20Jul.csv")
+    df = pd.read_csv("/home/josh/sub4milers/static/data/2025_to31Oct.csv")
 else:
     df = pd.read_csv("/home/joshcarr/sub4milers/static/data/Outdoor24_20Jul.csv")
 

@@ -1,77 +1,71 @@
-<!-- templates/base.html -->
-
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="">
-  <meta name="author" content="">
+  <meta name="description" content="Sub 4 Milers - tracking all sub 4 minute miles">
+  <meta name="author" content="Joshua Carr">
 
   <title>Sub 4 Milers</title>
 
+  <link rel="icon" href="{% static 'images/favicon.ico' %}" type="image/x-icon">
+
   <!-- Bootstrap core CSS -->
-  <link href="{% static '/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
 
-  <!-- Custom fonts for this template -->
-  <link href="{% static '/vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
-  <link href="{% static '/vendor/simple-line-icons/css/simple-line-icons.css' %}" rel="stylesheet" type="text/css">
-  
-  <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" rel="stylesheet" type="text/css">
+  <!-- Custom fonts -->
+  <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
+  <link href="{% static 'vendor/simple-line-icons/css/simple-line-icons.css' %}" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" rel="stylesheet">
 
-  <!-- Custom styles for this template -->
-  <link href="{% static '/css/landing-page.min.css' %}" rel="stylesheet">
-
+  <!-- Custom styles -->
+  <link href="{% static 'css/landing-page.min.css' %}" rel="stylesheet">
 </head>
 
 <body>
-
   <!-- Navigation -->
-  <nav class="navbar navbar-light bg-light static-top">
+  <nav class="navbar navbar-light bg-light sticky-top">
     <div class="container">
       <a class="navbar-brand" href="#">Sub 4 Milers</a>
       <a class="navbar-brand" href="{% url 'fastest' %}">By Fastest</a>
       <a class="navbar-brand" href="{% url 'sub4' %}">Chronological</a>
       <a class="navbar-brand" href="{% url 'mostRecent' %}">By Most Recent</a>
-      
-        
     </div>
   </nav>
 
-
+  <!-- Main content -->
   <div class="container-fluid">
     <div class="row">
-      <div class="col-sm-1">
-        </div>
-      
-      <div class="col-sm-10">
-        Last Updated: 20th July 2024
+      <div class="col-sm-1"></div>
+      <div class="col-sm-10 my-4">
+        <p class="text-muted small">Last Updated: 31st Oct 2025</p>
         {% block content %}
         {% endblock %}  
       </div>
-      <div class="col-sm-1">
-      </div>
-    
+      <div class="col-sm-1"></div>
+    </div>
   </div>
+
+  <!-- Sponsored note -->
+  <div class="container">
+    <p class="text-muted text-center small mb-2">Sponsored by <strong>FLYCARB</strong></p>
   </div>
+
   <!-- Footer -->
   <footer class="footer bg-light">
     <div class="container">
       <div class="row">
         <div class="col-lg-6 h-100 text-center text-lg-left my-auto">
-          <p class="text-muted small mb-4 mb-lg-0">&copy; Sub 4 Milers 2024 - Joshua Carr</p>
+          <p class="text-muted small mb-4 mb-lg-0">&copy; Sub 4 Milers 2025 - Joshua Elston-Carr</p>
         </div>
       </div>
     </div>
   </footer>
 
-  <!-- Bootstrap core JavaScript -->
-  <script src="{% static '/vendor/jquery/jquery.min.js' %}"></script>
-  <script src="{% static '/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-
+  <!-- Bootstrap core JS -->
+  <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 </body>
-
 </html>
