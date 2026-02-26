@@ -1,59 +1,363 @@
 <!-- templates/home.html -->
-
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %} Home {% endblock %}
+{% block title %}Fastest Sub-4 Milers{% endblock %}
+
 {% block content %}
 
-<script src="https://code.jquery.com/jquery-3.6.3.slim.min.js"></script>
-<script src="{% static '/js/tablesearch.js' %}"></script> <!-- new -->
+<script src="{% static '/js/tablesearch.js' %}"></script>
 
 <style>
-  * {
-    box-sizing: border-box;
+  /* ── SEARCH ────────────────────────────────────────────── */
+  .search-wrap {
+    position: relative;
+    margin-bottom: 28px;
+    max-width: 480px;
   }
 
-  .myInput {
-    background-image: url('searchicon.png');
-    background-position: 10px 12px;
-    background-repeat: no-repeat;
+  .search-wrap svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--subtle);
+    pointer-events: none;
+    width: 16px;
+    height: 16px;
+  }
+
+  .search-input {
     width: 100%;
-    font-size: 16px;
-    padding: 12px 20px 12px 40px;
-    border: 1px solid #ddd;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    padding: 12px 16px 12px 42px;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    letter-spacing: 0.04em;
+  }
+
+  .search-input::placeholder { color: var(--muted); }
+
+  .search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(200,241,53,0.08);
+  }
+
+  /* ── TABLE WRAPPER ─────────────────────────────────────── */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  /* ── TABLE ─────────────────────────────────────────────── */
+  table#list {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1rem;
+  }
+
+  /* Head */
+  table#list thead tr {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+
+  table#list thead th {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--subtle);
+    font-weight: 400;
+    padding: 14px 16px;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  table#list thead th:first-child {
+    width: 56px;
+    text-align: center;
+  }
+
+  /* Body rows */
+  table#list tbody tr {
+    border-bottom: 1px solid rgba(30,30,46,0.7);
+    transition: background 0.15s;
+  }
+
+  table#list tbody tr:last-child { border-bottom: none; }
+
+  table#list tbody tr:hover {
+    background: rgba(200,241,53,0.035);
+  }
+
+  table#list tbody td {
+    padding: 13px 16px;
+    vertical-align: middle;
+    color: var(--text);
+  }
+
+  /* Rank column */
+  .col-rank {
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    width: 56px;
+  }
+
+  /* Top 3 rank badges */
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+  }
+
+  .rank-1 { background: var(--gold);   color: #000; }
+  .rank-2 { background: #c0c0c0;       color: #000; }
+  .rank-3 { background: #cd7f32;       color: #000; }
+
+  /* Name */
+  .col-name {
+    font-weight: 500;
+    color: var(--bright);
+    letter-spacing: 0.01em;
+  }
+
+  /* Time — the star of the show */
+  .col-time {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+  }
+
+  /* Subtle striping every other row */
+  table#list tbody tr:nth-child(even) {
+    background: rgba(255,255,255,0.012);
+  }
+
+  table#list tbody tr:nth-child(even):hover {
+    background: rgba(200,241,53,0.04);
+  }
+
+  /* Country flag */
+  .col-country {
+    font-size: 1.2rem;
+    letter-spacing: 0.02em;
+  }
+
+  /* Date */
+  .col-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--subtle);
+    white-space: nowrap;
+  }
+
+  /* Responsive hide */
+  @media (max-width: 768px) {
+    .hide-mobile { display: none; }
+  }
+
+  /* Row count */
+  .table-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .view-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+
+  .row-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+  }
+
+  #row-count-num { color: var(--accent); }
+
+  .date-unknown {
+    color: var(--muted);
+    font-style: italic;
+    font-size: .78rem;
   }
 </style>
 
-<br>
-<input type="text" class="myInput" onkeyup="searchTable(this.value, 'list')" placeholder="Search full table..."
-  title="Search">
+<div class="table-meta">
+  <span class="view-label">⚡ Ranked by Fastest Time</span>
+  <span class="row-count">Showing <span id="row-count-num">—</span> athletes</span>
+</div>
 
-<table id="list" class="table">
-  <thead>
-    <tr>
-      <th scope="col">#</th>
-      <th scope="col">Name</th>
-      <th scope="col">Best Sub 4 Time</th>
-      <th class = "d-none d-lg-table-cell", scope="col">Date Best Effort</th>
-      <th class = "d-none d-lg-table-cell", scope="col">Country</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for sub4 in athletes %}
-    <tr>
-      <th scope="row">{{ forloop.counter }}</th>
-      <td scope="row">{{ sub4.name | title }}</td>
-      <td scope="row">{{ sub4.bestTime | time:"i:s" }}:{{ sub4.bestTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
-      <td scope="row", class = "d-none d-lg-table-cell">{{ sub4.bestDate}}</td>
-      <td scope="row", class = "d-none d-lg-table-cell">{{ sub4.countries | title }}</td>
-    
-      
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="search-wrap">
+  <!-- Search icon -->
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/>
+  </svg>
+  <input
+    type="text"
+    class="search-input"
+    id="tableSearch"
+    placeholder="Search athletes, countries…"
+    title="Search"
+    autocomplete="off"
+  >
+</div>
 
+<div class="table-wrap">
+  <table id="list">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Athlete</th>
+        <th>Best Time</th>
+        <th class="hide-mobile">Date</th>
+        <th class="hide-mobile">Country</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sub4 in athletes %}
+      <tr>
+        <td class="col-rank">
+          {% if forloop.counter == 1 %}
+            <span class="rank-badge rank-1">1</span>
+          {% elif forloop.counter == 2 %}
+            <span class="rank-badge rank-2">2</span>
+          {% elif forloop.counter == 3 %}
+            <span class="rank-badge rank-3">3</span>
+          {% else %}
+            {{ forloop.counter }}
+          {% endif %}
+        </td>
+        <td class="col-name">{{ sub4.name | title }}</td>
+        <td class="col-time">{{ sub4.bestTime | time:"i:s" }}:{{ sub4.bestTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
+        <td class="col-date hide-mobile">{% if sub4.bestDate %}{{ sub4.bestDate }}{% else %}<span class="date-unknown">unknown</span>{% endif %}</td>
+        <td class="col-country hide-mobile" data-country="{{ sub4.countries | title }}"></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // 3-letter athletics country code → flag emoji
+  const FLAGS = {
+    // Africa
+    "Alg": "🇩🇿", "Ang": "🇦🇴", "Ben": "🇧🇯", "Bot": "🇧🇼", "Bdi": "🇧🇮",
+    "Cmr": "🇨🇲", "Cpv": "🇨🇻", "Caf": "🇨🇫", "Cha": "🇹🇩", "Com": "🇰🇲",
+    "Cgo": "🇨🇬", "Cod": "🇨🇩", "Dji": "🇩🇯", "Egy": "🇪🇬", "Gnq": "🇬🇶",
+    "Eri": "🇪🇷", "Swz": "🇸🇿", "Eth": "🇪🇹", "Gab": "🇬🇦", "Gam": "🇬🇲",
+    "Gha": "🇬🇭", "Gui": "🇬🇳", "Gnb": "🇬🇼", "Civ": "🇨🇮", "Ken": "🇰🇪",
+    "Les": "🇱🇸", "Lbr": "🇱🇷", "Lba": "🇱🇾", "Mad": "🇲🇬", "Maw": "🇲🇼",
+    "Mli": "🇲🇱", "Mtn": "🇲🇷", "Mri": "🇲🇺", "Mar": "🇲🇦", "Moz": "🇲🇿",
+    "Nam": "🇳🇦", "Nig": "🇳🇪", "Ngr": "🇳🇬", "Reu": "🇷🇪", "Rwa": "🇷🇼",
+    "Stp": "🇸🇹", "Sen": "🇸🇳", "Sey": "🇸🇨", "Sle": "🇸🇱", "Som": "🇸🇴",
+    "Rsa": "🇿🇦", "Sud": "🇸🇩", "Ssd": "🇸🇸", "Tan": "🇹🇿", "Tog": "🇹🇬",
+    "Tun": "🇹🇳", "Uga": "🇺🇬", "Zam": "🇿🇲", "Zim": "🇿🇼",
+    // Americas
+    "Ant": "🇦🇬", "Arg": "🇦🇷", "Arb": "🇦🇼", "Bah": "🇧🇸", "Bar": "🇧🇧",
+    "Blz": "🇧🇿", "Ber": "🇧🇲", "Bol": "🇧🇴", "Bra": "🇧🇷", "Ivb": "🇻🇬",
+    "Can": "🇨🇦", "Cay": "🇰🇾", "Chi": "🇨🇱", "Col": "🇨🇴", "Crc": "🇨🇷",
+    "Cub": "🇨🇺", "Dom": "🇩🇴", "Ecu": "🇪🇨", "Slv": "🇸🇻", "Grd": "🇬🇩",
+    "Gtm": "🇬🇹", "Gua": "🇬🇹", "Guy": "🇬🇾", "Hai": "🇭🇹", "Hon": "🇭🇳",
+    "Jam": "🇯🇲", "Mex": "🇲🇽", "Nca": "🇳🇮", "Pan": "🇵🇦", "Par": "🇵🇾",
+    "Per": "🇵🇪", "Pto": "🇵🇷", "Skn": "🇰🇳", "Lca": "🇱🇨", "Vin": "🇻🇨",
+    "Sur": "🇸🇷", "Tto": "🇹🇹", "Uru": "🇺🇾", "Usa": "🇺🇸", "Ven": "🇻🇪",
+    "Isv": "🇻🇮",
+    // Asia & Middle East
+    "Afg": "🇦🇫", "Brn": "🇧🇭", "Ban": "🇧🇩", "Btn": "🇧🇹", "Bru": "🇧🇳",
+    "Cam": "🇰🇭", "Chn": "🇨🇳", "Hkg": "🇭🇰", "Ind": "🇮🇳", "Ina": "🇮🇩",
+    "Iri": "🇮🇷", "Irq": "🇮🇶", "Isr": "🇮🇱", "Jpn": "🇯🇵", "Jor": "🇯🇴",
+    "Kaz": "🇰🇿", "Prk": "🇰🇵", "Kor": "🇰🇷", "Kuw": "🇰🇼", "Kgz": "🇰🇬",
+    "Lao": "🇱🇦", "Lbn": "🇱🇧", "Mac": "🇲🇴", "Mas": "🇲🇾", "Mdv": "🇲🇻",
+    "Mgl": "🇲🇳", "Mya": "🇲🇲", "Nep": "🇳🇵", "Oma": "🇴🇲", "Pak": "🇵🇰",
+    "Phi": "🇵🇭", "Qat": "🇶🇦", "Ksa": "🇸🇦", "Sin": "🇸🇬", "Sri": "🇱🇰",
+    "Syr": "🇸🇾", "Tpe": "🇹🇼", "Tjk": "🇹🇯", "Tha": "🇹🇭", "Tkm": "🇹🇲",
+    "Uae": "🇦🇪", "Uzb": "🇺🇿", "Vie": "🇻🇳", "Yem": "🇾🇪",
+    // Europe
+    "Alb": "🇦🇱", "And": "🇦🇩", "Arm": "🇦🇲", "Aut": "🇦🇹", "Aze": "🇦🇿",
+    "Blr": "🇧🇾", "Bel": "🇧🇪", "Bih": "🇧🇦", "Bul": "🇧🇬", "Cro": "🇭🇷",
+    "Cyp": "🇨🇾", "Cze": "🇨🇿", "Den": "🇩🇰", "Est": "🇪🇪", "Fin": "🇫🇮",
+    "Fra": "🇫🇷", "Geo": "🇬🇪", "Ger": "🇩🇪", "Gbr": "🇬🇧", "Gre": "🇬🇷",
+    "Hun": "🇭🇺", "Isl": "🇮🇸", "Irl": "🇮🇪", "Ita": "🇮🇹", "Kos": "🇽🇰",
+    "Lat": "🇱🇻", "Lie": "🇱🇮", "Ltu": "🇱🇹", "Lux": "🇱🇺", "Mkd": "🇲🇰",
+    "Mlt": "🇲🇹", "Mda": "🇲🇩", "Mon": "🇲🇨", "Mne": "🇲🇪", "Ned": "🇳🇱",
+    "Nor": "🇳🇴", "Pol": "🇵🇱", "Por": "🇵🇹", "Rom": "🇷🇴", "Rus": "🇷🇺",
+    "Smr": "🇸🇲", "Srb": "🇷🇸", "Svk": "🇸🇰", "Slo": "🇸🇮", "Esp": "🇪🇸",
+    "Swe": "🇸🇪", "Sui": "🇨🇭", "Tur": "🇹🇷", "Ukr": "🇺🇦",
+    // Oceania
+    "Aus": "🇦🇺", "Nzl": "🇳🇿", "Png": "🇵🇬", "Fij": "🇫🇯", "Sam": "🇼🇸",
+    "Sol": "🇸🇧", "Van": "🇻🇺",
+    // Historical / dissolved nations
+    "Frg": "🇩🇪", // West Germany → Germany
+    "Gdr": "🇩🇪", // East Germany → Germany
+    "Urs": "🇷🇺", // Soviet Union → Russia
+    "Yug": "🇷🇸", // Yugoslavia → Serbia
+    "Tch": "🇨🇿", // Czechoslovakia → Czech Republic
+    "Ana": "🇷🇸", // Serbia & Montenegro → Serbia
+    // Common alternates & extras
+    "Rou": "🇷🇴", // Romania (alt IOC code)
+    "Scg": "🇷🇸", // Serbia & Montenegro (alt)
+    "Roc": "🇷🇺", // Russian Olympic Committee
+  };
+
+  function getFlag(raw) {
+    // Handle null, empty, or "Nan" (Python NaN cast to string)
+    if (!raw || raw.trim() === '' || raw.trim().toLowerCase() === 'nan') {
+      return '🏳️';
+    }
+    return raw.split(/[\/,]/).map(part => {
+      const code = part.trim();
+      return FLAGS[code] || '🏳️';
+    }).join(' ');
+  }
+
+  // Populate flag cells
+  document.querySelectorAll('.col-country[data-country]').forEach(td => {
+    td.textContent = getFlag(td.dataset.country);
+  });
+
+  // Live row count
+  const tbody   = document.querySelector('#list tbody');
+  const countEl = document.getElementById('row-count-num');
+  const heroCountEl = document.getElementById('total-count');
+
+  const total = tbody.querySelectorAll('tr').length;
+  countEl.textContent = total.toLocaleString();
+  if (heroCountEl) heroCountEl.textContent = total.toLocaleString();
+
+  document.getElementById('tableSearch').addEventListener('input', function () {
+    const q   = this.value.toLowerCase();
+    const rows = tbody.querySelectorAll('tr');
+    let visible = 0;
+    rows.forEach(row => {
+      const match = row.textContent.toLowerCase().includes(q);
+      row.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    countEl.textContent = visible.toLocaleString();
+  });
+</script>
 
 {% endblock %}

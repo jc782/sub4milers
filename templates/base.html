@@ -7,85 +7,309 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="Sub 4 Milers - tracking all sub 4 minute miles">
   <meta name="author" content="Joshua Carr">
-
   <title>Sub 4 Milers</title>
 
-  <!-- Standard favicons -->
-<link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon/favicon-32x32.png' %}">
-<link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon/favicon-16x16.png' %}">
+  <!-- Favicons (unchanged) -->
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon/favicon-32x32.png' %}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon/favicon-16x16.png' %}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/favicon/apple-touch-icon.png' %}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/favicon/android-chrome-192x192.png' %}">
+  <link rel="icon" type="image/png" sizes="512x512" href="{% static 'img/favicon/android-chrome-512x512.png' %}">
+  <link rel="mask-icon" href="{% static 'img/favicon/safari-pinned-tab.svg' %}" color="#5bbad5">
+  <link rel="manifest" href="{% static 'img/favicon/site.webmanifest' %}">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#0a0a0f">
 
-<!-- Apple Touch Icon -->
-<link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/favicon/apple-touch-icon.png' %}">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
-<!-- Android / Chrome -->
-<link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/favicon/android-chrome-192x192.png' %}">
-<link rel="icon" type="image/png" sizes="512x512" href="{% static 'img/favicon/android-chrome-512x512.png' %}">
+  <style>
+    :root {
+      --bg:        #0a0a0f;
+      --surface:   #111118;
+      --border:    #1e1e2e;
+      --muted:     #3a3a55;
+      --subtle:    #6b6b8a;
+      --text:      #e8e8f0;
+      --bright:    #ffffff;
+      --accent:    #c8f135;   /* electric lime — the stopwatch flash */
+      --accent2:   #ff4d4d;   /* heat — personal bests, records */
+      --gold:      #f5c842;
+    }
 
-<!-- Safari pinned tab -->
-<link rel="mask-icon" href="{% static 'img/favicon/safari-pinned-tab.svg' %}" color="#5bbad5">
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-<!-- Manifest for PWA / Android -->
-<link rel="manifest" href="{% static 'img/favicon/site.webmanifest' %}">
+    html { scroll-behavior: smooth; }
 
-<!-- Browser theme colors -->
-<meta name="msapplication-TileColor" content="#da532c">
-<meta name="theme-color" content="#ffffff">
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 17px;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      /* Subtle noise grain overlay */
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,241,53,0.06) 0%, transparent 70%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    }
 
+    /* ── NAV ─────────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
 
-  <!-- Bootstrap core CSS -->
-  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
 
-  <!-- Custom fonts -->
-  <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet">
-  <link href="{% static 'vendor/simple-line-icons/css/simple-line-icons.css' %}" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" rel="stylesheet">
+    .nav-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      text-decoration: none;
+      margin-right: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-  <!-- Custom styles -->
-  <link href="{% static 'css/landing-page.min.css' %}" rel="stylesheet">
+    .nav-brand::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--accent); }
+      50%       { opacity: 0.4; box-shadow: 0 0 4px var(--accent); }
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--subtle);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--bright);
+      background: var(--border);
+    }
+
+    .nav-links a.active {
+      color: var(--accent);
+    }
+
+    /* ── HERO BAND ───────────────────────────────────────── */
+    .hero-band {
+      border-bottom: 1px solid var(--border);
+      padding: 40px 24px 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .hero-eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 8vw, 6.5rem);
+      line-height: 0.92;
+      letter-spacing: 0.02em;
+      color: var(--bright);
+    }
+
+    .hero-title span {
+      color: var(--accent);
+    }
+
+    .hero-meta {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .hero-stat {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero-stat-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      color: var(--bright);
+      line-height: 1;
+    }
+
+    .hero-stat-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+
+    .hero-divider {
+      width: 1px;
+      height: 32px;
+      background: var(--border);
+    }
+
+    /* ── MAIN CONTENT ────────────────────────────────────── */
+    .page-main {
+      flex: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 32px 24px 64px;
+    }
+
+    /* ── FOOTER ──────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 20px 24px;
+      background: var(--surface);
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .footer-copy {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    .footer-sponsor {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    .footer-sponsor strong {
+      color: var(--accent);
+      letter-spacing: 0.18em;
+    }
+
+    .updated-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .nav-links a { font-size: 0.65rem; padding: 5px 9px; }
+      .hero-band { padding: 24px 16px 20px; }
+      .page-main { padding: 20px 16px 48px; }
+    }
+  </style>
 </head>
 
 <body>
+
   <!-- Navigation -->
-  <nav class="navbar navbar-light bg-light sticky-top">
-    <div class="container">
-      <a class="navbar-brand" href="{% url 'sub4' %}">Sub 4 Milers</a>
-      <a class="navbar-brand" href="{% url 'fastest' %}">By Fastest</a>
-      <a class="navbar-brand" href="{% url 'sub4' %}">Chronological</a>
-      <a class="navbar-brand" href="{% url 'mostRecent' %}">By Most Recent</a>
+  <nav>
+    <div class="nav-inner">
+      <a class="nav-brand" href="{% url 'sub4' %}">Sub 4 Milers</a>
+      <ul class="nav-links">
+        <li><a href="{% url 'fastest' %}">Fastest</a></li>
+        <li><a href="{% url 'sub4' %}">Chronological</a></li>
+        <li><a href="{% url 'mostRecent' %}">Most Recent</a></li>
+      </ul>
     </div>
   </nav>
 
-  <!-- Main content -->
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-sm-1"></div>
-      <div class="col-sm-10 my-4">
-        <p class="text-muted small">Last Updated: 31st Oct 2025</p>
-        {% block content %}
-        {% endblock %}  
+  <!-- Hero band -->
+  <div class="hero-band">
+    <h1 class="hero-title">Sub <span>4:00.00</span><br>Mile Club</h1>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <span class="hero-stat-value" id="total-count">—</span>
+        <span class="hero-stat-label">All-Time Members</span>
       </div>
-      <div class="col-sm-1"></div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">3:43.13</span>
+        <span class="hero-stat-label">World Record</span>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">1954</span>
+        <span class="hero-stat-label">First Broken</span>
+      </div>
     </div>
   </div>
 
-  <!-- Sponsored note -->
-  <div class="container">
-    <p class="text-muted text-center small mb-2">Sponsored by <strong>FLYCARB</strong></p>
-  </div>
+  <!-- Main content -->
+  <main class="page-main">
+    <p class="updated-tag">↻ Last Updated: 31st Oct 2025</p>
+    {% block content %}{% endblock %}
+  </main>
 
   <!-- Footer -->
-  <footer class="footer bg-light">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-6 h-100 text-center text-lg-left my-auto">
-          <p class="text-muted small mb-4 mb-lg-0">&copy; Sub 4 Milers 2025 - Joshua Elston-Carr</p>
-        </div>
-      </div>
+  <footer>
+    <div class="footer-inner">
+      <span class="footer-copy">© Sub 4 Milers 2025 — Joshua Elston-Carr</span>
+      <span class="footer-sponsor">Sponsored by <strong>FLYCARB</strong></span>
     </div>
   </footer>
 
-  <!-- Bootstrap core JS -->
-  <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
-  <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>
