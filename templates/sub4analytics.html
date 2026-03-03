@@ -389,7 +389,7 @@
     leafletMap.getContainer().style.background = '#12121f';
 
     // Single fetch — straight to GeoJSON, no topojson needed
-    fetch("https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson")
+    fetch("{% static 'data/countries.geojson' %}")
         .then(r => r.json())
         .then(geojson => {
             L.geoJSON(geojson, {
