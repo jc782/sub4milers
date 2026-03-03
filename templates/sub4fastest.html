@@ -1,6 +1,9 @@
 <!-- templates/home.html -->
 {% extends 'base.html' %}
+
 {% load static %}
+{% load time_filters %}
+
 
 {% block title %}Fastest Sub-4 Milers{% endblock %}
 
@@ -41,11 +44,13 @@
     letter-spacing: 0.04em;
   }
 
-  .search-input::placeholder { color: var(--muted); }
+  .search-input::placeholder {
+    color: var(--muted);
+  }
 
   .search-input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(200,241,53,0.08);
+    box-shadow: 0 0 0 3px rgba(200, 241, 53, 0.08);
   }
 
   /* ── TABLE WRAPPER ─────────────────────────────────────── */
@@ -87,14 +92,16 @@
 
   /* Body rows */
   table#list tbody tr {
-    border-bottom: 1px solid rgba(30,30,46,0.7);
+    border-bottom: 1px solid rgba(30, 30, 46, 0.7);
     transition: background 0.15s;
   }
 
-  table#list tbody tr:last-child { border-bottom: none; }
+  table#list tbody tr:last-child {
+    border-bottom: none;
+  }
 
   table#list tbody tr:hover {
-    background: rgba(200,241,53,0.035);
+    background: rgba(200, 241, 53, 0.035);
   }
 
   table#list tbody td {
@@ -125,9 +132,20 @@
     letter-spacing: 0.02em;
   }
 
-  .rank-1 { background: var(--gold);   color: #000; }
-  .rank-2 { background: #c0c0c0;       color: #000; }
-  .rank-3 { background: #cd7f32;       color: #000; }
+  .rank-1 {
+    background: var(--gold);
+    color: #000;
+  }
+
+  .rank-2 {
+    background: #c0c0c0;
+    color: #000;
+  }
+
+  .rank-3 {
+    background: #cd7f32;
+    color: #000;
+  }
 
   /* Name */
   .col-name {
@@ -146,11 +164,11 @@
 
   /* Subtle striping every other row */
   table#list tbody tr:nth-child(even) {
-    background: rgba(255,255,255,0.012);
+    background: rgba(255, 255, 255, 0.012);
   }
 
   table#list tbody tr:nth-child(even):hover {
-    background: rgba(200,241,53,0.04);
+    background: rgba(200, 241, 53, 0.04);
   }
 
   /* Country flag */
@@ -169,7 +187,9 @@
 
   /* Responsive hide */
   @media (max-width: 768px) {
-    .hide-mobile { display: none; }
+    .hide-mobile {
+      display: none;
+    }
   }
 
   /* Row count */
@@ -196,7 +216,9 @@
     color: var(--muted);
   }
 
-  #row-count-num { color: var(--accent); }
+  #row-count-num {
+    color: var(--accent);
+  }
 
   .date-unknown {
     color: var(--muted);
@@ -213,16 +235,11 @@
 <div class="search-wrap">
   <!-- Search icon -->
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-    <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/>
+    <circle cx="11" cy="11" r="8" />
+    <path stroke-linecap="round" d="m21 21-4.35-4.35" />
   </svg>
-  <input
-    type="text"
-    class="search-input"
-    id="tableSearch"
-    placeholder="Search athletes, countries…"
-    title="Search"
-    autocomplete="off"
-  >
+  <input type="text" class="search-input" id="tableSearch" placeholder="Search athletes, countries…" title="Search"
+    autocomplete="off">
 </div>
 
 <div class="table-wrap">
@@ -241,18 +258,20 @@
       <tr>
         <td class="col-rank">
           {% if forloop.counter == 1 %}
-            <span class="rank-badge rank-1">1</span>
+          <span class="rank-badge rank-1">1</span>
           {% elif forloop.counter == 2 %}
-            <span class="rank-badge rank-2">2</span>
+          <span class="rank-badge rank-2">2</span>
           {% elif forloop.counter == 3 %}
-            <span class="rank-badge rank-3">3</span>
+          <span class="rank-badge rank-3">3</span>
           {% else %}
-            {{ forloop.counter }}
+          {{ forloop.counter }}
           {% endif %}
         </td>
         <td class="col-name">{{ sub4.name | title }}</td>
-        <td class="col-time">{{ sub4.bestTime | time:"i:s" }}:{{ sub4.bestTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
-        <td class="col-date hide-mobile">{% if sub4.bestDate %}{{ sub4.bestDate }}{% else %}<span class="date-unknown">unknown</span>{% endif %}</td>
+        <td class="col-time">{{ sub4.best_time|format_mile_time }}</td>
+
+        <td class="col-date hide-mobile">{% if sub4.best_date %}{{ sub4.best_date }}{% else %}<span
+            class="date-unknown">unknown</span>{% endif %}</td>
         <td class="col-country hide-mobile" data-country="{{ sub4.countries | title }}"></td>
       </tr>
       {% endfor %}
@@ -339,7 +358,7 @@
   });
 
   // Live row count
-  const tbody   = document.querySelector('#list tbody');
+  const tbody = document.querySelector('#list tbody');
   const countEl = document.getElementById('row-count-num');
   const heroCountEl = document.getElementById('total-count');
 
@@ -348,7 +367,7 @@
   if (heroCountEl) heroCountEl.textContent = total.toLocaleString();
 
   document.getElementById('tableSearch').addEventListener('input', function () {
-    const q   = this.value.toLowerCase();
+    const q = this.value.toLowerCase();
     const rows = tbody.querySelectorAll('tr');
     let visible = 0;
     rows.forEach(row => {

@@ -8,6 +8,7 @@ urlpatterns = [
     path("", viewSub4, name="sub4"),
     path("fastest/", viewSub4Time, name="fastest"),
     path("mostrecent/", mostRecent, name="mostRecent"),
-    
+    path("mostSub4/", mostPerformances, name="mostSub4"),
+    path('analytics/', analytics, name='analytics'),
     
     ]

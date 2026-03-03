@@ -1,0 +1,433 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load time_filters %}
+
+{% block title %}Sub-4 Analytics{% endblock %}
+
+{% block content %}
+
+<style>
+    .analytics-grid {
+        display: grid;
+        gap: 24px;
+    }
+
+    .section-label {
+        font-family: 'DM Mono', monospace;
+        font-size: .68rem;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: var(--subtle);
+        margin-bottom: 16px;
+    }
+
+    .facts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 8px;
+    }
+
+    .fact-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px;
+    }
+
+    .fact-label {
+        font-family: 'DM Mono', monospace;
+        font-size: .62rem;
+        letter-spacing: .15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+    }
+
+    .fact-value {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 2rem;
+        letter-spacing: .04em;
+        color: var(--accent);
+        line-height: 1;
+    }
+
+    .fact-sub {
+        font-size: .78rem;
+        color: var(--subtle);
+        margin-top: 4px;
+    }
+
+    .chart-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px;
+    }
+
+    .chart-card canvas {
+        max-height: 320px;
+    }
+
+    .chart-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+        .chart-row { grid-template-columns: 1fr; }
+        .facts-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 480px) {
+        .facts-grid { grid-template-columns: 1fr; }
+    }
+
+    #map {
+        height: 460px;
+        width: 100%;
+        border-radius: 6px;
+        background: #12121f;
+    }
+
+    .leaflet-tooltip {
+        background: #0f0f1a;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #e2e8f0;
+        font-family: 'DM Mono', monospace;
+        font-size: 0.78rem;
+        padding: 8px 12px;
+        border-radius: 4px;
+        box-shadow: none;
+    }
+
+    .leaflet-tooltip::before { display: none; }
+
+    .leaflet-control-attribution {
+        background: rgba(15, 15, 26, 0.7) !important;
+        color: #6b7280 !important;
+        font-size: 0.6rem !important;
+    }
+
+    .leaflet-control-attribution a { color: #6b7280 !important; }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<div class="analytics-grid">
+
+    <!-- ── Fun Facts ──────────────────────────────────────────── -->
+    <div>
+        <div class="section-label">⚡ Key Stats</div>
+        <div class="facts-grid">
+            <div class="fact-card">
+                <div class="fact-label">Total Athletes</div>
+                <div class="fact-value">{{ fun_facts.total_athletes|floatformat:"0" }}</div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-label">Total Performances</div>
+                <div class="fact-value">{{ fun_facts.total_performances|floatformat:"0" }}</div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-label">World Record</div>
+                <div class="fact-value">{{ fun_facts.fastest_time|format_mile_time }}</div>
+                <div class="fact-sub">{{ fun_facts.fastest_athlete|title }} · {{ fun_facts.fastest_date }}</div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-label">Most Sub-4 Runs</div>
+                <div class="fact-value">{{ fun_facts.most_perf_count }}</div>
+                <div class="fact-sub">{{ fun_facts.most_perf_name|title }}</div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-label">Most Recent</div>
+                <div class="fact-value">{{ fun_facts.most_recent_time|format_mile_time }}</div>
+                <div class="fact-sub">{{ fun_facts.most_recent_name|title }} · {{ fun_facts.most_recent_date }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Performances per year + Cumulative ────────────────── -->
+    <div class="chart-row">
+        <div class="chart-card">
+            <div class="section-label">📅 Performances per Year</div>
+            <canvas id="perfsPerYear"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="section-label">📈 Cumulative Athletes Over Time</div>
+            <canvas id="cumulative"></canvas>
+        </div>
+    </div>
+
+    <!-- ── Depth over time ───────────────────────────────────── -->
+    <div class="chart-card">
+        <div class="section-label">📊 Depth Over Time — 10th & 100th Fastest Each Year</div>
+        <canvas id="depth" style="max-height:300px"></canvas>
+    </div>
+
+    <!-- ── World map ─────────────────────────────────────────── -->
+    <div class="chart-card">
+        <div class="section-label">🌍 Athletes by Country</div>
+        <div id="map"></div>
+    </div>
+
+</div>
+
+<script>
+    const ACCENT = '#c8f135';
+    const SUBTLE = '#6b7280';
+    const TEXT = '#e2e8f0';
+    const BORDER = 'rgba(255,255,255,0.08)';
+
+    Chart.defaults.color = SUBTLE;
+    Chart.defaults.borderColor = BORDER;
+    Chart.defaults.font.family = "'DM Mono', monospace";
+
+    function tooltipDefaults() {
+        return {
+            backgroundColor: '#0f0f1a',
+            borderColor: BORDER,
+            borderWidth: 1,
+            titleColor: TEXT,
+            bodyColor: SUBTLE,
+            padding: 12,
+        };
+    }
+
+    const perfsData    = {{ perfs_by_year_json|safe }};
+    const cumData      = {{ cumulative_json|safe }};
+    const depth10Data  = {{ depth_10th_json|safe }};
+    const depth100Data = {{ depth_100th_json|safe }};
+    const countryData  = {{ country_counts_json|safe }};
+
+    // ── 1. Performances per year ───────────────────────────────
+    new Chart(document.getElementById('perfsPerYear'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(perfsData),
+            datasets: [{
+                label: 'Performances',
+                data: Object.values(perfsData),
+                backgroundColor: ACCENT + '99',
+                borderColor: ACCENT,
+                borderWidth: 1,
+                borderRadius: 3,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false }, tooltip: { ...tooltipDefaults() } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { grid: { color: BORDER } },
+            }
+        }
+    });
+
+    // ── 2. Cumulative athletes ─────────────────────────────────
+    new Chart(document.getElementById('cumulative'), {
+        type: 'line',
+        data: {
+            labels: Object.keys(cumData),
+            datasets: [{
+                label: 'Total Athletes',
+                data: Object.values(cumData),
+                borderColor: ACCENT,
+                backgroundColor: ACCENT + '18',
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: true,
+                tension: 0.3,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false }, tooltip: { ...tooltipDefaults() } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { grid: { color: BORDER } },
+            }
+        }
+    });
+
+    // ── 3. Depth over time ─────────────────────────────────────
+    function secsToTime(s) {
+        if (s == null) return '';
+        const m = Math.floor(s / 60);
+        const ss = Math.floor(s % 60);
+        const cc = Math.round((s % 1) * 100);
+        return `${m}:${String(ss).padStart(2, '0')}.${String(cc).padStart(2, '0')}`;
+    }
+
+    const allDepthYears = [...new Set([
+        ...Object.keys(depth10Data),
+        ...Object.keys(depth100Data),
+    ])].sort();
+
+    new Chart(document.getElementById('depth'), {
+        type: 'line',
+        data: {
+            labels: allDepthYears,
+            datasets: [
+                {
+                    label: '10th Fastest',
+                    data: allDepthYears.map(y => depth10Data[y] ?? null),
+                    borderColor: ACCENT,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.3,
+                    spanGaps: true,
+                },
+                {
+                    label: '100th Fastest',
+                    data: allDepthYears.map(y => depth100Data[y] ?? null),
+                    borderColor: SUBTLE,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.3,
+                    spanGaps: true,
+                },
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true, labels: { color: TEXT, boxWidth: 12 } },
+                tooltip: {
+                    ...tooltipDefaults(),
+                    callbacks: { label: ctx => `${ctx.dataset.label}: ${secsToTime(ctx.parsed.y)}` }
+                },
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: {
+                    grid: { color: BORDER },
+                    reverse: true,
+                    ticks: { callback: val => secsToTime(val) }
+                },
+            }
+        }
+    });
+
+    // ── 4. Leaflet choropleth map ──────────────────────────────
+    const CODE_MAP = {
+        "ALG":"DZ","ANG":"AO","BEN":"BJ","BOT":"BW","BDI":"BI","CMR":"CM","CPV":"CV","EGY":"EG",
+        "ERI":"ER","ETH":"ET","GAB":"GA","GAM":"GM","GHA":"GH","GUI":"GN","GNB":"GW","CIV":"CI",
+        "KEN":"KE","LES":"LS","LBR":"LR","LBA":"LY","MAD":"MG","MAW":"MW","MLI":"ML","MAR":"MA",
+        "MOZ":"MZ","NAM":"NA","NIG":"NE","NGR":"NG","RWA":"RW","SEN":"SN","SEY":"SC","SLE":"SL",
+        "SOM":"SO","RSA":"ZA","SUD":"SD","SSD":"SS","TAN":"TZ","TOG":"TG","TUN":"TN","UGA":"UG",
+        "ZAM":"ZM","ZIM":"ZW","ANT":"AG","ARG":"AR","BAH":"BS","BAR":"BB","BLZ":"BZ","BOL":"BO",
+        "BRA":"BR","CAN":"CA","CHI":"CL","COL":"CO","CRC":"CR","CUB":"CU","DOM":"DO","ECU":"EC",
+        "SLV":"SV","GTM":"GT","GUY":"GY","HAI":"HT","HON":"HN","JAM":"JM","MEX":"MX","NCA":"NI",
+        "PAN":"PA","PAR":"PY","PER":"PE","PTO":"PR","PUR":"PR","SUR":"SR","TTO":"TT","URU":"UY",
+        "USA":"US","VEN":"VE","AFG":"AF","BAN":"BD","BTN":"BT","CAM":"KH","CHN":"CN","HKG":"HK",
+        "IND":"IN","INA":"ID","IRI":"IR","IRQ":"IQ","ISR":"IL","JPN":"JP","JOR":"JO","KAZ":"KZ",
+        "PRK":"KP","KOR":"KR","KUW":"KW","KGZ":"KG","LAO":"LA","LBN":"LB","MAS":"MY","MDV":"MV",
+        "MGL":"MN","MYA":"MM","NEP":"NP","OMA":"OM","PAK":"PK","PHI":"PH","QAT":"QA","KSA":"SA",
+        "SIN":"SG","SRI":"LK","SYR":"SY","TPE":"TW","TJK":"TJ","THA":"TH","TKM":"TM","UAE":"AE",
+        "UZB":"UZ","VIE":"VN","YEM":"YE","ALB":"AL","AND":"AD","ARM":"AM","AUT":"AT","AZE":"AZ",
+        "BLR":"BY","BEL":"BE","BIH":"BA","BUL":"BG","CRO":"HR","CYP":"CY","CZE":"CZ","DEN":"DK",
+        "EST":"EE","FIN":"FI","FRA":"FR","GEO":"GE","GER":"DE","GBR":"GB","GRE":"GR","HUN":"HU",
+        "ISL":"IS","IRL":"IE","ITA":"IT","LAT":"LV","LIE":"LI","LTU":"LT","LUX":"LU","MKD":"MK",
+        "MLT":"MT","MDA":"MD","MON":"MC","MNE":"ME","NED":"NL","NOR":"NO","POL":"PL","POR":"PT",
+        "ROM":"RO","ROU":"RO","RUS":"RU","SRB":"RS","SVK":"SK","SLO":"SI","ESP":"ES","SWE":"SE",
+        "SUI":"CH","TUR":"TR","UKR":"UA","AUS":"AU","NZL":"NZ","FIJ":"FJ","GUA":"GT",
+        "FRG":"DE","GDR":"DE","URS":"RU","YUG":"RS","TCH":"CZ","ANA":"RS","SCG":"RS","ROC":"RU",
+        "BRN":"BH","DJI":"DJ","SAM":"WS","BER":"BM","DMA":"DM",
+    };
+
+    // Aggregate athletics codes → ISO alpha-2 counts
+    const isoData = {};
+    for (const [code, count] of Object.entries(countryData)) {
+        if (code === 'NAN') continue;
+        const iso = CODE_MAP[code];
+        if (iso) isoData[iso] = (isoData[iso] || 0) + count;
+    }
+
+    // Fallback for countries where the GeoJSON has -99 as ISO code
+    const NAME_TO_ISO = {
+        'France': 'FR',
+        'Norway': 'NO',
+        'Denmark': 'DK',
+        'Netherlands': 'NL',
+        'Somalia': 'SO',
+        'Somaliland': 'SO',
+        'Kosovo': 'XK',
+        'Northern Cyprus': 'CY',
+    };
+
+    function resolveIso(feature) {
+        let iso = feature.properties['ISO3166-1-Alpha-2'];
+        if (!iso || iso === '-99') iso = NAME_TO_ISO[feature.properties.name] || null;
+        return iso;
+    }
+
+    const mapMax = Math.max(...Object.values(isoData));
+
+    function getColor(value) {
+        if (!value) return '#1a1a2e';
+        const intensity = Math.pow(value / mapMax, 0.4);
+        const r = Math.round(200 * intensity);
+        const g = Math.round(241 * intensity);
+        const b = Math.round(53 * intensity);
+        return `rgba(${r},${g},${b},${0.15 + intensity * 0.85})`;
+    }
+
+    const leafletMap = L.map('map', {
+        center: [20, 0],
+        zoom: 2,
+        minZoom: 1,
+        maxZoom: 6,
+        zoomControl: true,
+        attributionControl: false,
+    });
+
+    leafletMap.getContainer().style.background = '#12121f';
+
+    // Single fetch — straight to GeoJSON, no topojson needed
+    fetch("{% static 'data/countries.geojson' %}")
+        .then(r => r.json())
+        .then(geojson => {
+            L.geoJSON(geojson, {
+                style(feature) {
+                    const iso = resolveIso(feature);
+                    const value = (iso && isoData[iso]) || 0;
+                    return {
+                        fillColor: getColor(value),
+                        fillOpacity: 1,
+                        color: '#2a2a3e',
+                        weight: 0.5,
+                    };
+                },
+                onEachFeature(feature, layer) {
+                    const iso = resolveIso(feature);
+                    const name = feature.properties.name;
+                    const value = (iso && isoData[iso]) || 0;
+                    const label = value
+                        ? `<strong>${name}</strong><br>${value} athlete${value !== 1 ? 's' : ''}`
+                        : `<strong>${name}</strong><br>No data`;
+                    layer.bindTooltip(label, { sticky: true, className: '' });
+                    layer.on({
+                        mouseover(e) {
+                            e.target.setStyle({ weight: 1.5, color: ACCENT });
+                            e.target.bringToFront();
+                        },
+                        mouseout(e) {
+                            e.target.setStyle({ weight: 0.5, color: '#2a2a3e' });
+                        },
+                    });
+                }
+            }).addTo(leafletMap);
+        })
+        .catch(e => {
+            console.error('Map error:', e);
+            document.getElementById('map').innerHTML =
+                '<p style="color:#6b7280;font-family:\'DM Mono\',monospace;font-size:.8rem;padding:16px;">Map data could not be loaded.</p>';
+        });
+</script>
+
+{% endblock %}

@@ -1,0 +1,770 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Sub 4 Milers - tracking all sub 4 minute miles">
+  <meta name="author" content="Joshua Carr">
+  <title>Sub 4 Milers</title>
+
+  <!-- Favicons (unchanged) -->
+  <link rel="icon" type="image/png" sizes="32x32" href="../static/img/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="../static/img/favicon/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="../static/img/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="../static/img/favicon/android-chrome-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="../static/img/favicon/android-chrome-512x512.png">
+  <link rel="mask-icon" href="http://127.0.0.1:8000/static/img/favicon/safari-pinned-tab.svg" color="#5bbad5">
+  <link rel="manifest" href="../static/img/favicon/site.webmanifest">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#0a0a0f">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:        #0a0a0f;
+      --surface:   #111118;
+      --border:    #1e1e2e;
+      --muted:     #3a3a55;
+      --subtle:    #6b6b8a;
+      --text:      #e8e8f0;
+      --bright:    #ffffff;
+      --accent:    #c8f135;
+      --accent2:   #ff4d4d;
+      --gold:      #f5c842;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 17px;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,241,53,0.06) 0%, transparent 70%),
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    }
+
+    /* ── NAV ─────────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,15,0.85);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+
+    .nav-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      text-decoration: none;
+      margin-right: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-brand::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--accent); }
+      50%       { opacity: 0.4; box-shadow: 0 0 4px var(--accent); }
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--subtle);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--bright);
+      background: var(--border);
+    }
+
+    .nav-links a.active {
+      color: var(--accent);
+    }
+
+    /* ── HERO BAND ───────────────────────────────────────── */
+    .hero-band {
+      border-bottom: 1px solid var(--border);
+      padding: 40px 24px 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .hero-eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3rem, 8vw, 6.5rem);
+      line-height: 0.92;
+      letter-spacing: 0.02em;
+      color: var(--bright);
+    }
+
+    .hero-title span {
+      color: var(--accent);
+    }
+
+    .hero-meta {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .hero-stat {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero-stat-value {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      color: var(--bright);
+      line-height: 1;
+    }
+
+    .hero-stat-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+
+    .hero-divider {
+      width: 1px;
+      height: 32px;
+      background: var(--border);
+    }
+
+    /* ── MAIN CONTENT ────────────────────────────────────── */
+    .page-main {
+      flex: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 32px 24px 64px;
+    }
+
+    /* ── FOOTER ──────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 24px;
+      background: var(--surface);
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .footer-copy {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    .footer-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+
+    .footer-sponsor-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.60rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+
+    .footer-sponsor-logo {
+      height: 22px;
+      width: auto;
+      opacity: 0.85;
+      transition: opacity 0.2s;
+    }
+
+    .footer-sponsor-logo:hover {
+      opacity: 1;
+    }
+
+    .updated-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .nav-links a { font-size: 0.65rem; padding: 5px 9px; }
+      .hero-band { padding: 24px 16px 20px; }
+      .page-main { padding: 20px 16px 48px; }
+      .footer-right { align-items: flex-start; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-inner">
+      <a class="nav-brand" href="../index.html">Sub 4 Milers</a>
+      <ul class="nav-links">
+        <li><a href="../fastest/index.html">Fastest</a></li>
+        <li><a href="../index.html">Chronological</a></li>
+        <li><a href="../mostrecent/index.html">Most Recent</a></li>
+        <li><a href="../mostSub4/index.html">Most Sub 4s</a></li>
+        <li><a href="index.html">Analytics</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero band -->
+  <div class="hero-band">
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:24px;">
+      <h1 class="hero-title">Sub <span>4:00.00</span><br>Mile Club</h1>
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; padding-top:8px;">
+        <span style="font-family:'DM Mono',monospace; font-size:0.60rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--subtle);">Proudly sponsored by</span>
+        <a href="https://www.flycarb.com" target="_blank" rel="noopener">
+          <img src="https://www.flycarb.com/staticfiles/images/FLYCARB_LOGO_WHITE.png" alt="FLYCARB" style="height:36px; width:auto; opacity:0.9; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.9">
+        </a>
+      </div>
+    </div>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <span class="hero-stat-value" id="total-count">—</span>
+        <span class="hero-stat-label">All-Time Members</span>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">3:43.13</span>
+        <span class="hero-stat-label">World Record</span>
+      </div>
+      <div class="hero-divider"></div>
+      <div class="hero-stat">
+        <span class="hero-stat-value">1954</span>
+        <span class="hero-stat-label">First Broken</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <main class="page-main">
+    <p class="updated-tag">↻ Last Updated: 23rd Feb 2026</p>
+    
+
+<style>
+    .analytics-grid {
+        display: grid;
+        gap: 24px;
+    }
+
+    .section-label {
+        font-family: 'DM Mono', monospace;
+        font-size: .68rem;
+        letter-spacing: .18em;
+        text-transform: uppercase;
+        color: var(--subtle);
+        margin-bottom: 16px;
+    }
+
+    .facts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 8px;
+    }
+
+    .fact-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px;
+    }
+
+    .fact-label {
+        font-family: 'DM Mono', monospace;
+        font-size: .62rem;
+        letter-spacing: .15em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+    }
+
+    .fact-value {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 2rem;
+        letter-spacing: .04em;
+        color: var(--accent);
+        line-height: 1;
+    }
+
+    .fact-sub {
+        font-size: .78rem;
+        color: var(--subtle);
+        margin-top: 4px;
+    }
+
+    .chart-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 24px;
+    }
+
+    .chart-card canvas {
+        max-height: 320px;
+    }
+
+    .chart-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+        .chart-row { grid-template-columns: 1fr; }
+        .facts-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 480px) {
+        .facts-grid { grid-template-columns: 1fr; }
+    }
+
+    #map {
+        height: 460px;
+        width: 100%;
+        border-radius: 6px;
+        background: #12121f;
+    }
+
+    .leaflet-tooltip {
+        background: #0f0f1a;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #e2e8f0;
+        font-family: 'DM Mono', monospace;
+        font-size: 0.78rem;
+        padding: 8px 12px;
+        border-radius: 4px;
+        box-shadow: none;
+    }
+
+    .leaflet-tooltip::before { display: none; }
+
+    .leaflet-control-attribution {
+        background: rgba(15, 15, 26, 0.7) !important;
+        color: #6b7280 !important;
+        font-size: 0.6rem !important;
+    }
+
+    .leaflet-control-attribution a { color: #6b7280 !important; }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<div class="analytics-grid">
+
+    <!-- ── Fun Facts ──────────────────────────────────────────── -->
+    <div>
+        <div class="section-label">⚡ Key Stats</div>
+        <div class="facts-grid">
+            <div class="fact-card">
+                <div class="fact-label">Total Athletes</div>
+                <div class="fact-value">2349</div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-label">Total Performances</div>
+                <div class="fact-value">7404</div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-label">World Record</div>
+                <div class="fact-value">3:43.13</div>
+                <div class="fact-sub">Hicham El Guerrouj · July 7, 1999</div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-label">Most Sub-4 Runs</div>
+                <div class="fact-value">105</div>
+                <div class="fact-sub">John Walker</div>
+            </div>
+            <div class="fact-card">
+                <div class="fact-label">Most Recent</div>
+                <div class="fact-value">3:53.38</div>
+                <div class="fact-sub">James Gormley · Feb. 22, 2026</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Performances per year + Cumulative ────────────────── -->
+    <div class="chart-row">
+        <div class="chart-card">
+            <div class="section-label">📅 Performances per Year</div>
+            <canvas id="perfsPerYear"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="section-label">📈 Cumulative Athletes Over Time</div>
+            <canvas id="cumulative"></canvas>
+        </div>
+    </div>
+
+    <!-- ── Depth over time ───────────────────────────────────── -->
+    <div class="chart-card">
+        <div class="section-label">📊 Depth Over Time — 10th & 100th Fastest Each Year</div>
+        <canvas id="depth" style="max-height:300px"></canvas>
+    </div>
+
+    <!-- ── World map ─────────────────────────────────────────── -->
+    <div class="chart-card">
+        <div class="section-label">🌍 Athletes by Country</div>
+        <div id="map"></div>
+    </div>
+
+</div>
+
+<script>
+    const ACCENT = '#c8f135';
+    const SUBTLE = '#6b7280';
+    const TEXT = '#e2e8f0';
+    const BORDER = 'rgba(255,255,255,0.08)';
+
+    Chart.defaults.color = SUBTLE;
+    Chart.defaults.borderColor = BORDER;
+    Chart.defaults.font.family = "'DM Mono', monospace";
+
+    function tooltipDefaults() {
+        return {
+            backgroundColor: '#0f0f1a',
+            borderColor: BORDER,
+            borderWidth: 1,
+            titleColor: TEXT,
+            bodyColor: SUBTLE,
+            padding: 12,
+        };
+    }
+
+    const perfsData    = {"1954": 4, "1955": 3, "1956": 11, "1957": 15, "1958": 20, "1959": 4, "1960": 14, "1961": 4, "1962": 24, "1963": 30, "1964": 39, "1965": 60, "1966": 41, "1967": 32, "1968": 39, "1969": 29, "1970": 36, "1971": 57, "1972": 44, "1973": 76, "1974": 87, "1975": 99, "1976": 73, "1977": 103, "1978": 98, "1979": 143, "1980": 130, "1981": 168, "1982": 184, "1983": 192, "1984": 140, "1985": 171, "1986": 175, "1987": 137, "1988": 128, "1989": 137, "1990": 130, "1991": 134, "1992": 78, "1993": 113, "1994": 87, "1995": 89, "1996": 93, "1997": 118, "1998": 171, "1999": 93, "2000": 97, "2001": 136, "2002": 92, "2003": 67, "2004": 51, "2005": 71, "2006": 64, "2007": 94, "2008": 75, "2009": 102, "2010": 108, "2011": 94, "2012": 133, "2013": 156, "2014": 146, "2015": 121, "2016": 129, "2017": 129, "2018": 206, "2019": 151, "2020": 62, "2021": 149, "2022": 207, "2023": 179, "2024": 263, "2025": 316, "2026": 147};
+    const cumData      = {"1954": 2, "1955": 5, "1956": 10, "1957": 17, "1958": 22, "1959": 23, "1960": 28, "1962": 40, "1963": 46, "1964": 58, "1965": 71, "1966": 83, "1967": 94, "1968": 104, "1969": 115, "1970": 128, "1971": 148, "1972": 162, "1973": 186, "1974": 213, "1975": 233, "1976": 246, "1977": 274, "1978": 294, "1979": 321, "1980": 348, "1981": 372, "1982": 405, "1983": 444, "1984": 474, "1985": 507, "1986": 535, "1987": 562, "1988": 593, "1989": 618, "1990": 642, "1991": 684, "1992": 707, "1993": 733, "1994": 765, "1995": 792, "1996": 821, "1997": 855, "1998": 894, "1999": 920, "2000": 951, "2001": 987, "2002": 1011, "2003": 1030, "2004": 1047, "2005": 1075, "2006": 1102, "2007": 1136, "2008": 1168, "2009": 1213, "2010": 1253, "2011": 1291, "2012": 1336, "2013": 1385, "2014": 1421, "2015": 1464, "2016": 1506, "2017": 1551, "2018": 1608, "2019": 1655, "2020": 1700, "2021": 1784, "2022": 1910, "2023": 2015, "2024": 2123, "2025": 2260, "2026": 2348};
+    const depth10Data  = {"1956": 239.1, "1957": 239.1, "1958": 238.5, "1960": 239.8, "1962": 238.07, "1963": 236.9, "1964": 237.6, "1965": 235.5, "1966": 237.3, "1967": 237.2, "1968": 238.4, "1969": 237.8, "1970": 237.8, "1971": 236.9, "1972": 237.1, "1973": 236.15, "1974": 235.5, "1975": 233.8, "1976": 236.03, "1977": 235.09, "1978": 234.3, "1979": 233.15, "1980": 233.55, "1981": 229.74, "1982": 229.77, "1983": 230.73, "1984": 231.62, "1985": 232.14, "1986": 230.93, "1987": 232.36, "1988": 232.14, "1989": 232.2, "1990": 233.06, "1991": 230.74, "1992": 232.78, "1993": 232.73, "1994": 233.54, "1995": 232.25, "1996": 231.4, "1997": 228.64, "1998": 231.99, "1999": 231.9, "2000": 230.26, "2001": 229.75, "2002": 231.68, "2003": 231.39, "2004": 234.02, "2005": 231.33, "2006": 233.03, "2007": 232.35, "2008": 230.95, "2009": 231.25, "2010": 230.68, "2011": 231.02, "2012": 230.43, "2013": 230.92, "2014": 230.26, "2015": 232.63, "2016": 232.71, "2017": 233.21, "2018": 233.93, "2019": 231.3, "2020": 236.86, "2021": 231.63, "2022": 231.7, "2023": 228.24, "2024": 229.09, "2025": 227.71, "2026": 231.9};
+    const depth100Data = {"1977": 239.8, "1979": 238.7, "1980": 238.96, "1981": 237.29, "1982": 237.07, "1983": 237.4, "1984": 238.6, "1985": 238.02, "1986": 237.87, "1987": 239.18, "1988": 239.1, "1989": 239.3, "1990": 238.98, "1991": 238.84, "1993": 239.57, "1997": 238.8, "1998": 237.1, "2001": 238.14, "2009": 239.87, "2010": 239.8, "2012": 238.73, "2013": 238.28, "2014": 238.09, "2015": 239.4, "2016": 238.74, "2017": 238.96, "2018": 237.91, "2019": 238.79, "2021": 238.62, "2022": 237.57, "2023": 237.7, "2024": 235.38, "2025": 234.74, "2026": 238.98};
+    const countryData  = {"ALB": 1, "ALG": 17, "ANA": 1, "ARG": 1, "AUS": 98, "AUT": 6, "BDI": 1, "BEL": 27, "BER": 1, "BLR": 1, "BRA": 6, "BRN": 3, "BUL": 2, "CAN": 90, "CHN": 1, "COL": 1, "CRC": 1, "CRO": 2, "CUB": 1, "CYP": 1, "CZE": 4, "DEN": 11, "DJI": 3, "DMA": 1, "ESP": 41, "EST": 2, "ETH": 29, "FIN": 10, "FRA": 53, "FRG": 18, "GBR": 287, "GDR": 7, "GER": 21, "GHA": 2, "GRE": 2, "GUA": 1, "HUN": 9, "IRL": 68, "ISL": 2, "ITA": 27, "JAM": 3, "JPN": 12, "KEN": 173, "KSA": 1, "KUW": 1, "LTU": 2, "LUX": 3, "MAR": 41, "MEX": 12, "NED": 20, "NOR": 17, "NZL": 54, "POL": 13, "POR": 9, "PUR": 3, "QAT": 7, "ROU": 4, "RSA": 68, "RUS": 7, "RWA": 1, "SAM": 1, "SEN": 1, "SLO": 2, "SOM": 6, "SRB": 1, "SUD": 3, "SUI": 9, "SVK": 1, "SWE": 20, "TAN": 4, "TCH": 5, "THA": 1, "TUN": 4, "TUR": 2, "UGA": 3, "UKR": 2, "URS": 4, "USA": 885, "YUG": 2, "ZIM": 3, "NAN": 75, "IND": 1, "URU": 1, "ERI": 1, "ISR": 1};
+
+    // ── 1. Performances per year ───────────────────────────────
+    new Chart(document.getElementById('perfsPerYear'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(perfsData),
+            datasets: [{
+                label: 'Performances',
+                data: Object.values(perfsData),
+                backgroundColor: ACCENT + '99',
+                borderColor: ACCENT,
+                borderWidth: 1,
+                borderRadius: 3,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false }, tooltip: { ...tooltipDefaults() } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { grid: { color: BORDER } },
+            }
+        }
+    });
+
+    // ── 2. Cumulative athletes ─────────────────────────────────
+    new Chart(document.getElementById('cumulative'), {
+        type: 'line',
+        data: {
+            labels: Object.keys(cumData),
+            datasets: [{
+                label: 'Total Athletes',
+                data: Object.values(cumData),
+                borderColor: ACCENT,
+                backgroundColor: ACCENT + '18',
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: true,
+                tension: 0.3,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false }, tooltip: { ...tooltipDefaults() } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { grid: { color: BORDER } },
+            }
+        }
+    });
+
+    // ── 3. Depth over time ─────────────────────────────────────
+    function secsToTime(s) {
+        if (s == null) return '';
+        const m = Math.floor(s / 60);
+        const ss = Math.floor(s % 60);
+        const cc = Math.round((s % 1) * 100);
+        return `${m}:${String(ss).padStart(2, '0')}.${String(cc).padStart(2, '0')}`;
+    }
+
+    const allDepthYears = [...new Set([
+        ...Object.keys(depth10Data),
+        ...Object.keys(depth100Data),
+    ])].sort();
+
+    new Chart(document.getElementById('depth'), {
+        type: 'line',
+        data: {
+            labels: allDepthYears,
+            datasets: [
+                {
+                    label: '10th Fastest',
+                    data: allDepthYears.map(y => depth10Data[y] ?? null),
+                    borderColor: ACCENT,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.3,
+                    spanGaps: true,
+                },
+                {
+                    label: '100th Fastest',
+                    data: allDepthYears.map(y => depth100Data[y] ?? null),
+                    borderColor: SUBTLE,
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.3,
+                    spanGaps: true,
+                },
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true, labels: { color: TEXT, boxWidth: 12 } },
+                tooltip: {
+                    ...tooltipDefaults(),
+                    callbacks: { label: ctx => `${ctx.dataset.label}: ${secsToTime(ctx.parsed.y)}` }
+                },
+            },
+            scales: {
+                x: { grid: { display: false } },
+                y: {
+                    grid: { color: BORDER },
+                    reverse: true,
+                    ticks: { callback: val => secsToTime(val) }
+                },
+            }
+        }
+    });
+
+    // ── 4. Leaflet choropleth map ──────────────────────────────
+    const CODE_MAP = {
+        "ALG":"DZ","ANG":"AO","BEN":"BJ","BOT":"BW","BDI":"BI","CMR":"CM","CPV":"CV","EGY":"EG",
+        "ERI":"ER","ETH":"ET","GAB":"GA","GAM":"GM","GHA":"GH","GUI":"GN","GNB":"GW","CIV":"CI",
+        "KEN":"KE","LES":"LS","LBR":"LR","LBA":"LY","MAD":"MG","MAW":"MW","MLI":"ML","MAR":"MA",
+        "MOZ":"MZ","NAM":"NA","NIG":"NE","NGR":"NG","RWA":"RW","SEN":"SN","SEY":"SC","SLE":"SL",
+        "SOM":"SO","RSA":"ZA","SUD":"SD","SSD":"SS","TAN":"TZ","TOG":"TG","TUN":"TN","UGA":"UG",
+        "ZAM":"ZM","ZIM":"ZW","ANT":"AG","ARG":"AR","BAH":"BS","BAR":"BB","BLZ":"BZ","BOL":"BO",
+        "BRA":"BR","CAN":"CA","CHI":"CL","COL":"CO","CRC":"CR","CUB":"CU","DOM":"DO","ECU":"EC",
+        "SLV":"SV","GTM":"GT","GUY":"GY","HAI":"HT","HON":"HN","JAM":"JM","MEX":"MX","NCA":"NI",
+        "PAN":"PA","PAR":"PY","PER":"PE","PTO":"PR","PUR":"PR","SUR":"SR","TTO":"TT","URU":"UY",
+        "USA":"US","VEN":"VE","AFG":"AF","BAN":"BD","BTN":"BT","CAM":"KH","CHN":"CN","HKG":"HK",
+        "IND":"IN","INA":"ID","IRI":"IR","IRQ":"IQ","ISR":"IL","JPN":"JP","JOR":"JO","KAZ":"KZ",
+        "PRK":"KP","KOR":"KR","KUW":"KW","KGZ":"KG","LAO":"LA","LBN":"LB","MAS":"MY","MDV":"MV",
+        "MGL":"MN","MYA":"MM","NEP":"NP","OMA":"OM","PAK":"PK","PHI":"PH","QAT":"QA","KSA":"SA",
+        "SIN":"SG","SRI":"LK","SYR":"SY","TPE":"TW","TJK":"TJ","THA":"TH","TKM":"TM","UAE":"AE",
+        "UZB":"UZ","VIE":"VN","YEM":"YE","ALB":"AL","AND":"AD","ARM":"AM","AUT":"AT","AZE":"AZ",
+        "BLR":"BY","BEL":"BE","BIH":"BA","BUL":"BG","CRO":"HR","CYP":"CY","CZE":"CZ","DEN":"DK",
+        "EST":"EE","FIN":"FI","FRA":"FR","GEO":"GE","GER":"DE","GBR":"GB","GRE":"GR","HUN":"HU",
+        "ISL":"IS","IRL":"IE","ITA":"IT","LAT":"LV","LIE":"LI","LTU":"LT","LUX":"LU","MKD":"MK",
+        "MLT":"MT","MDA":"MD","MON":"MC","MNE":"ME","NED":"NL","NOR":"NO","POL":"PL","POR":"PT",
+        "ROM":"RO","ROU":"RO","RUS":"RU","SRB":"RS","SVK":"SK","SLO":"SI","ESP":"ES","SWE":"SE",
+        "SUI":"CH","TUR":"TR","UKR":"UA","AUS":"AU","NZL":"NZ","FIJ":"FJ","GUA":"GT",
+        "FRG":"DE","GDR":"DE","URS":"RU","YUG":"RS","TCH":"CZ","ANA":"RS","SCG":"RS","ROC":"RU",
+        "BRN":"BH","DJI":"DJ","SAM":"WS","BER":"BM","DMA":"DM",
+    };
+
+    // Aggregate athletics codes → ISO alpha-2 counts
+    const isoData = {};
+    for (const [code, count] of Object.entries(countryData)) {
+        if (code === 'NAN') continue;
+        const iso = CODE_MAP[code];
+        if (iso) isoData[iso] = (isoData[iso] || 0) + count;
+    }
+
+    // Fallback for countries where the GeoJSON has -99 as ISO code
+    const NAME_TO_ISO = {
+        'France': 'FR',
+        'Norway': 'NO',
+        'Denmark': 'DK',
+        'Netherlands': 'NL',
+        'Somalia': 'SO',
+        'Somaliland': 'SO',
+        'Kosovo': 'XK',
+        'Northern Cyprus': 'CY',
+    };
+
+    function resolveIso(feature) {
+        let iso = feature.properties['ISO3166-1-Alpha-2'];
+        if (!iso || iso === '-99') iso = NAME_TO_ISO[feature.properties.name] || null;
+        return iso;
+    }
+
+    const mapMax = Math.max(...Object.values(isoData));
+
+    function getColor(value) {
+        if (!value) return '#1a1a2e';
+        const intensity = Math.pow(value / mapMax, 0.4);
+        const r = Math.round(200 * intensity);
+        const g = Math.round(241 * intensity);
+        const b = Math.round(53 * intensity);
+        return `rgba(${r},${g},${b},${0.15 + intensity * 0.85})`;
+    }
+
+    const leafletMap = L.map('map', {
+        center: [20, 0],
+        zoom: 2,
+        minZoom: 1,
+        maxZoom: 6,
+        zoomControl: true,
+        attributionControl: false,
+    });
+
+    leafletMap.getContainer().style.background = '#12121f';
+
+    // Single fetch — straight to GeoJSON, no topojson needed
+    fetch("/static/data/countries.geojson")
+        .then(r => r.json())
+        .then(geojson => {
+            L.geoJSON(geojson, {
+                style(feature) {
+                    const iso = resolveIso(feature);
+                    const value = (iso && isoData[iso]) || 0;
+                    return {
+                        fillColor: getColor(value),
+                        fillOpacity: 1,
+                        color: '#2a2a3e',
+                        weight: 0.5,
+                    };
+                },
+                onEachFeature(feature, layer) {
+                    const iso = resolveIso(feature);
+                    const name = feature.properties.name;
+                    const value = (iso && isoData[iso]) || 0;
+                    const label = value
+                        ? `<strong>${name}</strong><br>${value} athlete${value !== 1 ? 's' : ''}`
+                        : `<strong>${name}</strong><br>No data`;
+                    layer.bindTooltip(label, { sticky: true, className: '' });
+                    layer.on({
+                        mouseover(e) {
+                            e.target.setStyle({ weight: 1.5, color: ACCENT });
+                            e.target.bringToFront();
+                        },
+                        mouseout(e) {
+                            e.target.setStyle({ weight: 0.5, color: '#2a2a3e' });
+                        },
+                    });
+                }
+            }).addTo(leafletMap);
+        })
+        .catch(e => {
+            console.error('Map error:', e);
+            document.getElementById('map').innerHTML =
+                '<p style="color:#6b7280;font-family:\'DM Mono\',monospace;font-size:.8rem;padding:16px;">Map data could not be loaded.</p>';
+        });
+</script>
+
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-inner">
+      <span class="footer-copy">© Sub 4 Milers 2026 — Joshua Elston-Carr</span>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -34,8 +34,8 @@
       --subtle:    #6b6b8a;
       --text:      #e8e8f0;
       --bright:    #ffffff;
-      --accent:    #c8f135;   /* electric lime — the stopwatch flash */
-      --accent2:   #ff4d4d;   /* heat — personal bests, records */
+      --accent:    #c8f135;
+      --accent2:   #ff4d4d;
       --gold:      #f5c842;
     }
 
@@ -52,7 +52,6 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      /* Subtle noise grain overlay */
       background-image:
         radial-gradient(ellipse 80% 50% at 50% -10%, rgba(200,241,53,0.06) 0%, transparent 70%),
         url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
@@ -212,7 +211,7 @@
     /* ── FOOTER ──────────────────────────────────────────── */
     footer {
       border-top: 1px solid var(--border);
-      padding: 20px 24px;
+      padding: 24px 24px;
       background: var(--surface);
     }
 
@@ -223,7 +222,13 @@
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 16px;
+    }
+
+    .footer-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     .footer-copy {
@@ -233,16 +238,30 @@
       letter-spacing: 0.05em;
     }
 
-    .footer-sponsor {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.68rem;
-      color: var(--muted);
-      letter-spacing: 0.1em;
+    .footer-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
     }
 
-    .footer-sponsor strong {
-      color: var(--accent);
-      letter-spacing: 0.18em;
+    .footer-sponsor-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.60rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+
+    .footer-sponsor-logo {
+      height: 22px;
+      width: auto;
+      opacity: 0.85;
+      transition: opacity 0.2s;
+    }
+
+    .footer-sponsor-logo:hover {
+      opacity: 1;
     }
 
     .updated-tag {
@@ -258,6 +277,7 @@
       .nav-links a { font-size: 0.65rem; padding: 5px 9px; }
       .hero-band { padding: 24px 16px 20px; }
       .page-main { padding: 20px 16px 48px; }
+      .footer-right { align-items: flex-start; }
     }
   </style>
 </head>
@@ -272,13 +292,23 @@
         <li><a href="{% url 'fastest' %}">Fastest</a></li>
         <li><a href="{% url 'sub4' %}">Chronological</a></li>
         <li><a href="{% url 'mostRecent' %}">Most Recent</a></li>
+        <li><a href="{% url 'mostSub4' %}">Most Sub 4s</a></li>
+        <li><a href="{% url 'analytics' %}">Analytics</a></li>
       </ul>
     </div>
   </nav>
 
   <!-- Hero band -->
   <div class="hero-band">
-    <h1 class="hero-title">Sub <span>4:00.00</span><br>Mile Club</h1>
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:24px;">
+      <h1 class="hero-title">Sub <span>4:00.00</span><br>Mile Club</h1>
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; padding-top:8px;">
+        <span style="font-family:'DM Mono',monospace; font-size:0.60rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--subtle);">Proudly sponsored by</span>
+        <a href="https://www.flycarb.com" target="_blank" rel="noopener">
+          <img src="https://www.flycarb.com/staticfiles/images/FLYCARB_LOGO_WHITE.png" alt="FLYCARB" style="height:36px; width:auto; opacity:0.9; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.9">
+        </a>
+      </div>
+    </div>
     <div class="hero-meta">
       <div class="hero-stat">
         <span class="hero-stat-value" id="total-count">—</span>
@@ -299,15 +329,14 @@
 
   <!-- Main content -->
   <main class="page-main">
-    <p class="updated-tag">↻ Last Updated: 31st Oct 2025</p>
+    <p class="updated-tag">↻ Last Updated: 23rd Feb 2026</p>
     {% block content %}{% endblock %}
   </main>
 
   <!-- Footer -->
   <footer>
     <div class="footer-inner">
-      <span class="footer-copy">© Sub 4 Milers 2025 — Joshua Elston-Carr</span>
-      <span class="footer-sponsor">Sponsored by <strong>FLYCARB</strong></span>
+      <span class="footer-copy">© Sub 4 Milers 2026 — Joshua Elston-Carr</span>
     </div>
   </footer>
 

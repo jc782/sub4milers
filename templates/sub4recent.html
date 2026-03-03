@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load time_filters %}
 
 {% block title %}Most Recent Sub-4 Milers{% endblock %}
 
@@ -161,9 +162,9 @@
       <tr>
         <td class="col-rank">{{ forloop.counter }}</td>
         <td class="col-name">{{ sub4.name | title }}</td>
-        <td class="col-time">{{ sub4.firstTime | time:"i:s" }}:{{ sub4.firstTime|time:'u'|add:'0'|stringformat:'06i'|slice:':2' }}</td>
-        <td class="col-date hide-mobile">{% if sub4.firstDate %}{{ sub4.firstDate }}{% else %}<span class="date-unknown">unknown</span>{% endif %}</td>
-        <td class="col-country hide-mobile" data-country="{{ sub4.countries | title }}"></td>
+        <td class="col-time">{{ sub4.first_sub4_time|format_mile_time }}</td>
+<td class="col-date hide-mobile">{% if sub4.first_sub4_date %}{{ sub4.first_sub4_date }}{% else %}<span class="date-unknown">unknown</span>{% endif %}</td>
+<td class="col-country hide-mobile" data-country="{{ sub4.countries | title }}"></td>
       </tr>
       {% endfor %}
     </tbody>
