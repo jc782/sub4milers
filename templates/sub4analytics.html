@@ -6,6 +6,11 @@
 
 {% block content %}
 
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
 <style>
     .analytics-grid {
         display: grid;
@@ -91,18 +96,31 @@
         background: #12121f;
     }
 
-    .leaflet-tooltip {
-        background: #0f0f1a;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        color: #e2e8f0;
-        font-family: 'DM Mono', monospace;
-        font-size: 0.78rem;
-        padding: 8px 12px;
-        border-radius: 4px;
-        box-shadow: none;
-    }
+    .leaflet-tooltip,
+.leaflet-tooltip-top,
+.leaflet-tooltip-bottom,
+.leaflet-tooltip-left,
+.leaflet-tooltip-right {
+    background-color: rgba(15, 15, 26, 0.95) !important;
+    border: 1px solid rgba(200, 241, 53, 0.3) !important;
+    color: #e2e8f0 !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 0.78rem !important;
+    padding: 10px 14px !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.6) !important;
+    white-space: nowrap !important;
+}
 
-    .leaflet-tooltip::before { display: none; }
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+    border-top-color: rgba(15, 15, 26, 0.95) !important;
+    border-bottom-color: rgba(15, 15, 26, 0.95) !important;
+    border-left-color: rgba(15, 15, 26, 0.95) !important;
+    border-right-color: rgba(15, 15, 26, 0.95) !important;
+}
 
     .leaflet-control-attribution {
         background: rgba(15, 15, 26, 0.7) !important;
@@ -113,9 +131,6 @@
     .leaflet-control-attribution a { color: #6b7280 !important; }
 </style>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
 <div class="analytics-grid">
 
@@ -410,7 +425,7 @@
                     const label = value
                         ? `<strong>${name}</strong><br>${value} athlete${value !== 1 ? 's' : ''}`
                         : `<strong>${name}</strong><br>No data`;
-                    layer.bindTooltip(label, { sticky: true, className: '' });
+                    layer.bindTooltip(label, { sticky: true });
                     layer.on({
                         mouseover(e) {
                             e.target.setStyle({ weight: 1.5, color: ACCENT });
