@@ -176,23 +176,6 @@
     .nav-dropdown a:hover { color: var(--bright); background: var(--border); }
     .nav-dropdown.open    { display: flex; }
 
-    /* FLYCARB logo in nav — desktop only */
-    .nav-flycarb {
-      display: flex;
-      align-items: center;
-      margin-left: 20px;
-      padding-left: 20px;
-      border-left: 1px solid var(--border);
-    }
-
-    .nav-flycarb img {
-      height: 22px;
-      width: auto;
-      opacity: 0.8;
-      transition: opacity 0.2s;
-    }
-
-    .nav-flycarb img:hover { opacity: 1; }
 
     /* ── HERO BAND ───────────────────────────────────────── */
     .hero-band {
@@ -211,9 +194,9 @@
       gap: 24px;
     }
 
-    /* Sponsor block in hero — shown on mobile only */
+    /* Sponsor block in hero */
     .hero-sponsor {
-      display: none;
+      display: flex;
       flex-direction: column;
       align-items: flex-end;
       gap: 6px;
@@ -314,15 +297,15 @@
     @media (max-width: 768px) {
       /* Hide desktop links, show hamburger */
       .nav-links    { display: none; }
-      .nav-flycarb  { display: none; }
       .nav-hamburger { display: flex; }
 
-      /* Show sponsor in hero on mobile */
-      .hero-sponsor { display: flex; }
 
       .hero-band { padding: 24px 16px 20px; }
       .page-main { padding: 20px 16px 48px; }
     }
+    
+    * { max-width: 100%; }
+
   </style>
 </head>
 
@@ -342,10 +325,6 @@
         <li><a href="analytics/index.html">Analytics</a></li>
       </ul>
 
-      <!-- FLYCARB logo — desktop nav, top-right -->
-      <a class="nav-flycarb" href="https://www.flycarb.com" target="_blank" rel="noopener">
-        <img src="https://www.flycarb.com/staticfiles/images/FLYCARB_LOGO_WHITE.png" alt="FLYCARB">
-      </a>
 
       <!-- Hamburger — mobile only -->
       <button class="nav-hamburger" id="nav-toggle" aria-label="Open menu">
