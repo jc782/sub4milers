@@ -9,7 +9,6 @@
   <meta name="author" content="Joshua Carr">
   <title>Sub 4 Milers</title>
 
-  <!-- Favicons (unchanged) -->
   <link rel="icon" type="image/png" sizes="32x32" href="../static/img/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="../static/img/favicon/favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="../static/img/favicon/apple-touch-icon.png">
@@ -20,27 +19,25 @@
   <meta name="msapplication-TileColor" content="#da532c">
   <meta name="theme-color" content="#0a0a0f">
 
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg:        #0a0a0f;
-      --surface:   #111118;
-      --border:    #1e1e2e;
-      --muted:     #3a3a55;
-      --subtle:    #6b6b8a;
-      --text:      #e8e8f0;
-      --bright:    #ffffff;
-      --accent:    #c8f135;
-      --accent2:   #ff4d4d;
-      --gold:      #f5c842;
+      --bg:      #0a0a0f;
+      --surface: #111118;
+      --border:  #1e1e2e;
+      --muted:   #3a3a55;
+      --subtle:  #6b6b8a;
+      --text:    #e8e8f0;
+      --bright:  #ffffff;
+      --accent:  #c8f135;
+      --accent2: #ff4d4d;
+      --gold:    #f5c842;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html { scroll-behavior: smooth; }
 
     body {
@@ -106,6 +103,7 @@
       50%       { opacity: 0.4; box-shadow: 0 0 4px var(--accent); }
     }
 
+    /* Desktop nav links */
     .nav-links {
       display: flex;
       align-items: center;
@@ -126,14 +124,75 @@
     }
 
     .nav-links a:hover,
-    .nav-links a.active {
-      color: var(--bright);
-      background: var(--border);
+    .nav-links a.active { color: var(--bright); background: var(--border); }
+    .nav-links a.active  { color: var(--accent); }
+
+    /* Hamburger button — hidden on desktop */
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      width: 36px;
+      height: 36px;
+      padding: 6px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
     }
 
-    .nav-links a.active {
-      color: var(--accent);
+    .nav-hamburger span {
+      display: block;
+      width: 100%;
+      height: 2px;
+      background: var(--subtle);
+      border-radius: 2px;
+      transition: background 0.2s;
     }
+
+    .nav-hamburger:hover span { background: var(--bright); }
+
+    /* Mobile dropdown */
+    .nav-dropdown {
+      display: none;
+      flex-direction: column;
+      background: rgba(10,10,15,0.97);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 0;
+    }
+
+    .nav-dropdown a {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--subtle);
+      text-decoration: none;
+      padding: 12px 24px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .nav-dropdown a:hover { color: var(--bright); background: var(--border); }
+    .nav-dropdown.open    { display: flex; }
+
+    /* FLYCARB logo in nav — desktop only */
+    .nav-flycarb {
+      display: flex;
+      align-items: center;
+      margin-left: 20px;
+      padding-left: 20px;
+      border-left: 1px solid var(--border);
+    }
+
+    .nav-flycarb img {
+      height: 22px;
+      width: auto;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    .nav-flycarb img:hover { opacity: 1; }
 
     /* ── HERO BAND ───────────────────────────────────────── */
     .hero-band {
@@ -144,14 +203,39 @@
       width: 100%;
     }
 
-    .hero-eyebrow {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.68rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 10px;
+    .hero-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
     }
+
+    /* Sponsor block in hero — shown on mobile only */
+    .hero-sponsor {
+      display: none;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      padding-top: 6px;
+    }
+
+    .hero-sponsor span {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--subtle);
+    }
+
+    .hero-sponsor img {
+      height: 28px;
+      width: auto;
+      opacity: 0.9;
+      transition: opacity 0.2s;
+    }
+
+    .hero-sponsor img:hover { opacity: 1; }
 
     .hero-title {
       font-family: 'Bebas Neue', sans-serif;
@@ -161,9 +245,7 @@
       color: var(--bright);
     }
 
-    .hero-title span {
-      color: var(--accent);
-    }
+    .hero-title span { color: var(--accent); }
 
     .hero-meta {
       margin-top: 16px;
@@ -173,10 +255,7 @@
       flex-wrap: wrap;
     }
 
-    .hero-stat {
-      display: flex;
-      flex-direction: column;
-    }
+    .hero-stat { display: flex; flex-direction: column; }
 
     .hero-stat-value {
       font-family: 'Bebas Neue', sans-serif;
@@ -193,11 +272,7 @@
       color: var(--subtle);
     }
 
-    .hero-divider {
-      width: 1px;
-      height: 32px;
-      background: var(--border);
-    }
+    .hero-divider { width: 1px; height: 32px; background: var(--border); }
 
     /* ── MAIN CONTENT ────────────────────────────────────── */
     .page-main {
@@ -211,24 +286,13 @@
     /* ── FOOTER ──────────────────────────────────────────── */
     footer {
       border-top: 1px solid var(--border);
-      padding: 24px 24px;
+      padding: 20px 24px;
       background: var(--surface);
     }
 
     .footer-inner {
       max-width: 1200px;
       margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .footer-left {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
     }
 
     .footer-copy {
@@ -236,32 +300,6 @@
       font-size: 0.68rem;
       color: var(--muted);
       letter-spacing: 0.05em;
-    }
-
-    .footer-right {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 6px;
-    }
-
-    .footer-sponsor-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.60rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--subtle);
-    }
-
-    .footer-sponsor-logo {
-      height: 22px;
-      width: auto;
-      opacity: 0.85;
-      transition: opacity 0.2s;
-    }
-
-    .footer-sponsor-logo:hover {
-      opacity: 1;
     }
 
     .updated-tag {
@@ -273,11 +311,17 @@
     }
 
     /* ── RESPONSIVE ──────────────────────────────────────── */
-    @media (max-width: 640px) {
-      .nav-links a { font-size: 0.65rem; padding: 5px 9px; }
+    @media (max-width: 768px) {
+      /* Hide desktop links, show hamburger */
+      .nav-links    { display: none; }
+      .nav-flycarb  { display: none; }
+      .nav-hamburger { display: flex; }
+
+      /* Show sponsor in hero on mobile */
+      .hero-sponsor { display: flex; }
+
       .hero-band { padding: 24px 16px 20px; }
       .page-main { padding: 20px 16px 48px; }
-      .footer-right { align-items: flex-start; }
     }
   </style>
 </head>
@@ -288,6 +332,8 @@
   <nav>
     <div class="nav-inner">
       <a class="nav-brand" href="../index.html">Sub 4 Milers</a>
+
+      <!-- Desktop links -->
       <ul class="nav-links">
         <li><a href="../fastest/index.html">Fastest</a></li>
         <li><a href="../index.html">Chronological</a></li>
@@ -295,17 +341,39 @@
         <li><a href="../mostSub4/index.html">Most Sub 4s</a></li>
         <li><a href="../analytics/index.html">Analytics</a></li>
       </ul>
+
+      <!-- FLYCARB logo — desktop nav, top-right -->
+      <a class="nav-flycarb" href="https://www.flycarb.com" target="_blank" rel="noopener">
+        <img src="https://www.flycarb.com/staticfiles/images/FLYCARB_LOGO_WHITE.png" alt="FLYCARB">
+      </a>
+
+      <!-- Hamburger — mobile only -->
+      <button class="nav-hamburger" id="nav-toggle" aria-label="Open menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </div>
   </nav>
 
+  <!-- Mobile dropdown -->
+  <div class="nav-dropdown" id="nav-dropdown">
+    <a href="../fastest/index.html">Fastest</a>
+    <a href="../index.html">Chronological</a>
+    <a href="index.html">Most Recent</a>
+    <a href="../mostSub4/index.html">Most Sub 4s</a>
+    <a href="../analytics/index.html">Analytics</a>
+  </div>
+
   <!-- Hero band -->
   <div class="hero-band">
-    <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:24px;">
+    <div class="hero-top">
       <h1 class="hero-title">Sub <span>4:00.00</span><br>Mile Club</h1>
-      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; padding-top:8px;">
-        <span style="font-family:'DM Mono',monospace; font-size:0.60rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--subtle);">Proudly sponsored by</span>
+      <!-- Sponsor shown here on mobile (hidden on desktop via CSS) -->
+      <div class="hero-sponsor">
+        <span>Proudly sponsored by</span>
         <a href="https://www.flycarb.com" target="_blank" rel="noopener">
-          <img src="https://www.flycarb.com/staticfiles/images/FLYCARB_LOGO_WHITE.png" alt="FLYCARB" style="height:36px; width:auto; opacity:0.9; transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.9">
+          <img src="https://www.flycarb.com/staticfiles/images/FLYCARB_LOGO_WHITE.png" alt="FLYCARB">
         </a>
       </div>
     </div>
@@ -19341,9 +19409,21 @@
   <!-- Footer -->
   <footer>
     <div class="footer-inner">
-      <span class="footer-copy">© Sub 4 Milers 2026 — Joshua Elston-Carr</span>
+      <span class="footer-copy">© Sub 4 Milers 2025 — Joshua Elston-Carr</span>
     </div>
   </footer>
+
+  <script>
+    const toggle   = document.getElementById('nav-toggle');
+    const dropdown = document.getElementById('nav-dropdown');
+    toggle.addEventListener('click', () => {
+      dropdown.classList.toggle('open');
+    });
+    // Close dropdown when a link is tapped
+    dropdown.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => dropdown.classList.remove('open'));
+    });
+  </script>
 
 </body>
 </html>
