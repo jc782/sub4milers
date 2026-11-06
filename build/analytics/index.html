@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="Sub 4 Milers — Official register of all sub-4:00.00 minute mile performances">
+  <meta name="description" content="Sub 4 Milers — Register of all sub-4:00.00 minute mile performances">
   <meta name="author" content="Joshua Carr">
   <title>Statistical Ledger — Sub 4 Milers</title>
 
@@ -83,7 +83,7 @@
         url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
     }
 
-    /* ── TOP CLASSIFICATION STRIP ────────────────────────── */
+    /* ── TOP STRIP ───────────────────────────────────────── */
     .ledger-strip {
       display: flex;
       justify-content: space-between;
@@ -94,8 +94,7 @@
       border-bottom: 1px solid var(--rule-dark);
       background-color: var(--paper-alt);
       font-size: 0.75rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      letter-spacing: 0.1em;
       color: var(--ink-medium);
     }
 
@@ -151,13 +150,6 @@
       text-transform: uppercase;
       color: var(--ink);
       font-weight: 400;
-    }
-
-    .hero-title span {
-      color: var(--ribbon-red);
-      text-decoration: underline;
-      text-decoration-thickness: 2px;
-      text-underline-offset: 5px;
     }
 
     /* Sponsor block — crisp ink stamp box so white logo is sharp on cream paper */
@@ -254,54 +246,41 @@
       display: flex;
       align-items: stretch;
       justify-content: space-between;
-      padding: 0 24px;
+      padding: 0;
       min-height: 46px;
-    }
-
-    .nav-brand {
-      font-family: var(--font-stamp);
-      font-size: 1rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--ink);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      padding-right: 20px;
-      border-right: 1px solid var(--rule-light);
-      margin-right: auto;
-    }
-
-    .nav-brand:hover {
-      color: var(--ribbon-red);
     }
 
     .nav-links {
       display: flex;
       align-items: stretch;
       list-style: none;
+      width: 100%;
     }
 
     .nav-links li {
       display: flex;
-      border-left: 1px solid var(--rule-light);
+      flex: 1;
+      border-right: 1px solid var(--rule-light);
     }
 
     .nav-links li:last-child {
-      border-right: 1px solid var(--rule-light);
+      border-right: none;
     }
 
     .nav-links a {
       font-family: var(--font-type);
-      font-size: 0.78rem;
+      font-size: 0.8rem;
       font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--ink-medium);
       text-decoration: none;
       padding: 0 16px;
+      width: 100%;
       display: flex;
       align-items: center;
+      justify-content: center;
+      text-align: center;
       transition: background-color 0.15s, color 0.15s;
       position: relative;
     }
@@ -325,7 +304,7 @@
       gap: 4px;
       width: 36px;
       height: 32px;
-      margin: auto 0;
+      margin: auto 16px auto auto;
       padding: 6px;
       background: var(--paper);
       border: 1px solid var(--rule-dark);
@@ -676,9 +655,9 @@
 
   <div class="dossier-shell">
 
-    <!-- Top Official Classification Strip -->
+    <!-- Top Strip -->
     <div class="ledger-strip">
-      <span class="ledger-strip-code">OFFICIAL REGISTER // ONE MILE (1,609.34M)</span>
+      <span class="ledger-strip-code">Sub 4 Register // One Mile (1609.34m)</span>
       <span class="updated-tag">Last Updated: <strong>6th Nov 2026</strong></span>
     </div>
 
@@ -687,7 +666,7 @@
       <div class="hero-top">
         <div class="hero-title-group">
           <span class="hero-kicker">Chronicle of Sub-Four-Minute Mile Performances</span>
-          <h1 class="hero-title">Sub <span>4:00.00</span> Mile Club</h1>
+          <h1 class="hero-title">Sub 4:00.00 Mile Club</h1>
         </div>
 
         <div class="hero-sponsor">
@@ -700,7 +679,7 @@
 
       <div class="hero-meta">
         <div class="hero-stat">
-          <span class="hero-stat-label">All-Time Members</span>
+          <span class="hero-stat-label">Sub 4 Runners</span>
           <span class="hero-stat-value" id="total-count">—</span>
         </div>
         <div class="hero-stat">
@@ -717,8 +696,6 @@
     <!-- Index Tab Navigation -->
     <nav>
       <div class="nav-inner">
-        <a class="nav-brand" href="../index.html">[ S4M LEDGER ]</a>
-
         <ul class="nav-links">
           <li><a href="../index.html" data-nav="chronological">Chronological</a></li>
           <li><a href="../fastest/index.html" data-nav="fastest">Fastest</a></li>
@@ -892,20 +869,20 @@
 </style>
 
 <div class="table-meta">
-  <span class="view-label">SECTION 05 // STATISTICAL SUMMARY &amp; HISTORICAL PLOTS</span>
+  <span class="view-label">Analytics</span>
   <span class="row-count">Compiled from <span id="row-count-num">7759</span> logged runs</span>
 </div>
 
 <div class="analytics-grid">
 
-  <!-- ── Key Stats Ledger ──────────────────────────────────── -->
+  <!-- ── Key Stats ─────────────────────────────────────────── -->
   <div>
-    <div class="section-label">I. Key Registry Figures</div>
+    <div class="section-label">Summary</div>
     <div class="facts-grid">
       <div class="fact-card">
         <div class="fact-label">Total Athletes</div>
         <div class="fact-value">2389</div>
-        <div class="fact-sub">Official Sub-4 Inductees</div>
+        <div class="fact-sub">Sub 4 Runners</div>
       </div>
       <div class="fact-card">
         <div class="fact-label">Total Performances</div>
@@ -923,7 +900,7 @@
         <div class="fact-sub">John Walker</div>
       </div>
       <div class="fact-card">
-        <div class="fact-label">Most Recent Inductee</div>
+        <div class="fact-label">Most Recent Sub 4</div>
         <div class="fact-value">3:52.94</div>
         <div class="fact-sub">Henry Jonas · 05 SEP 2026</div>
       </div>
@@ -933,24 +910,24 @@
   <!-- ── Performances per year + Cumulative ────────────────── -->
   <div class="chart-row">
     <div class="chart-card">
-      <div class="section-label">II. Sub-4 Performances Recorded Per Year</div>
+      <div class="section-label">Sub-4 Performances Per Year</div>
       <canvas id="perfsPerYear"></canvas>
     </div>
     <div class="chart-card">
-      <div class="section-label">III. Cumulative Inducted Athletes (1954–Present)</div>
+      <div class="section-label">Cumulative Sub 4 Runners (1954–Present)</div>
       <canvas id="cumulative"></canvas>
     </div>
   </div>
 
   <!-- ── Depth over time ───────────────────────────────────── -->
   <div class="chart-card">
-    <div class="section-label">IV. Depth Progression — 10th &amp; 100th Fastest Marks Each Season</div>
+    <div class="section-label">Depth Progression — 10th &amp; 100th Fastest Marks Each Season</div>
     <canvas id="depth" style="max-height:300px"></canvas>
   </div>
 
   <!-- ── World map ─────────────────────────────────────────── -->
   <div class="chart-card">
-    <div class="section-label">V. Geographical Distribution of Sub-4 Milers by Nation</div>
+    <div class="section-label">Geographical Distribution of Sub-4 Milers by Nation</div>
     <div id="map"></div>
   </div>
 
