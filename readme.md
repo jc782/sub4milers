@@ -13,6 +13,9 @@ python manage.py scrape_world_athletics
 # (Optional) Preview changes without writing to db.sqlite3, or scrape a specific year
 python manage.py scrape_world_athletics --year 2026 --dry-run
 
-# 2. Render the static site into docs/ and build/
+# 2. Discover Instagram & Strava handles for recent first-time sub-4 inductees
+python manage.py find_athlete_socials --recent 10 --markdown-output /tmp/new_sub4_socials.md
+
+# 3. Render the static site into docs/ and build/
 python manage.py build_static
 ```

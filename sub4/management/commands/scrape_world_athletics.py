@@ -1,5 +1,7 @@
 import csv
 import datetime
+import json
+import re
 import time as time_module
 import unicodedata
 from difflib import SequenceMatcher
@@ -24,6 +26,8 @@ DATE_FORMATS = [
     "%Y-%m-%d",     # 2026-07-18
     "%d/%m/%Y",     # 18/07/2026
 ]
+
+WA_ID_RE = re.compile(r"(\d{6,10})")
 
 
 def normalize_text(text):
@@ -87,6 +91,17 @@ def parse_dob(raw):
     return None, None
 
 
+def extract_wa_id(td_competitor):
+    """Extract World Athletics numeric athlete ID from <td data-th='Competitor'> link."""
+    if not td_competitor:
+        return None
+    a_tag = td_competitor.find("a", href=True)
+    if not a_tag:
+        return None
+    match = WA_ID_RE.search(a_tag["href"])
+    return match.group(1) if match else None
+
+
 def name_similarity(a, b):
     """Similarity score between two names after normalizing accents and case."""
     norm_a = normalize_text(a)
@@ -114,13 +129,19 @@ def name_similarity(a, b):
     return base_score
 
 
-
-def find_matching_athlete(name, country, dob, birth_year, existing_athletes, threshold=0.85):
+def find_matching_athlete(
+    name, country, dob, birth_year, existing_athletes, wa_id=None, threshold=0.85
+):
     """
-    Find an existing Athlete matching name + optional country/DOB.
+    Find an existing Athlete matching wa_id, or name + optional country/DOB.
     Protects against merging distinct athletes with the same name but different birth years
     (e.g. Reuben Reina Sr. b. 1967 vs Reuben Reina Jr. b. 2003).
     """
+    if wa_id:
+        for athlete in existing_athletes:
+            if athlete.world_athletics_id and athlete.world_athletics_id == wa_id:
+                return athlete, 1.0
+
     best_match = None
     best_score = 0.0
 
@@ -201,7 +222,6 @@ def ensure_first_sub4(athlete, dry_run=False):
     if not current_first:
         target = dated_perfs[0] if dated_perfs else min(perfs, key=lambda p: p.time)
     elif len(current_first) > 1:
-        # Keep only one is_first_sub4
         target = dated_perfs[0] if dated_perfs else current_first[0]
     else:
         marked = current_first[0]
@@ -257,6 +277,12 @@ class Command(BaseCommand):
             help="Save scraped rows to static/data/wa_<year>.csv",
         )
         parser.add_argument(
+            "--output-new-athletes",
+            type=str,
+            default="",
+            help="Optional file path to write JSON list of newly created Athlete IDs",
+        )
+        parser.add_argument(
             "--dry-run",
             action="store_true",
             help="Preview changes without modifying the database",
@@ -309,6 +335,8 @@ class Command(BaseCommand):
                     td = tr.find("td", {"data-th": th_name})
                     return " ".join(td.get_text().split()) if td else ""
 
+                td_comp = tr.find("td", {"data-th": "Competitor"})
+                wa_id = extract_wa_id(td_comp)
                 raw_rank = cell_text("Rank")
                 raw_mark = cell_text("Mark")
                 raw_wind = cell_text("WIND")
@@ -337,6 +365,7 @@ class Command(BaseCommand):
                     "Time": raw_mark,
                     "Wind": raw_wind,
                     "Name": raw_name,
+                    "WA_ID": wa_id or "",
                     "DOB": raw_dob,
                     "Country": raw_nat,
                     "Pos": raw_pos,
@@ -359,6 +388,7 @@ class Command(BaseCommand):
         threshold = options["threshold"]
         max_pages = options["max_pages"]
         save_csv = options["save_csv"]
+        output_new_athletes = options["output_new_athletes"]
         dry_run = options["dry_run"]
 
         session = requests.Session()
@@ -377,6 +407,7 @@ class Command(BaseCommand):
         total_updated_perfs = 0
         total_skipped_perfs = 0
         touched_athletes = set()
+        new_athlete_ids = []
 
         for year in years:
             rows = self.fetch_year_rows(
@@ -397,7 +428,7 @@ class Command(BaseCommand):
                     writer = csv.DictWriter(
                         f,
                         fieldnames=[
-                            "Rank", "Time", "Wind", "Name", "DOB",
+                            "Rank", "Time", "Wind", "Name", "WA_ID", "DOB",
                             "Country", "Pos", "Location", "Date", "Points",
                         ],
                     )
@@ -408,6 +439,7 @@ class Command(BaseCommand):
             for row in rows:
                 raw_time = row["Time"]
                 raw_name = row["Name"]
+                wa_id = row.get("WA_ID", "").strip() or None
                 country = row["Country"].strip().upper()
                 location = row["Location"].strip()
                 raw_date = row["Date"]
@@ -423,13 +455,14 @@ class Command(BaseCommand):
 
                 notes = "Split in longer race" if is_split else None
 
-                # 1. Match existing athlete by name (+ country/DOB)
+                # 1. Match existing athlete by WA_ID or name (+ country/DOB)
                 athlete, score = find_matching_athlete(
                     name=raw_name,
                     country=country,
                     dob=dob_date,
                     birth_year=birth_year,
                     existing_athletes=existing_athletes,
+                    wa_id=wa_id,
                     threshold=threshold,
                 )
 
@@ -447,7 +480,7 @@ class Command(BaseCommand):
                     clean_name = raw_name.lower()
                     self.stdout.write(
                         self.style.SUCCESS(
-                            f"  [NEW ATHLETE] {raw_name} ({country}, DOB={dob_date or raw_dob or 'unknown'}) "
+                            f"  [NEW ATHLETE] {raw_name} ({country}, DOB={dob_date or raw_dob or 'unknown'}, WA_ID={wa_id}) "
                             f"— best match score {score:.2f}"
                         )
                     )
@@ -456,18 +489,21 @@ class Command(BaseCommand):
                             name=clean_name,
                             DOB=dob_date,
                             countries=country,
+                            world_athletics_id=wa_id,
                         )
                         existing_athletes.append(athlete)
+                        new_athlete_ids.append(athlete.pk)
                     else:
                         athlete = Athlete(
                             name=clean_name,
                             DOB=dob_date,
                             countries=country,
+                            world_athletics_id=wa_id,
                         )
                         existing_athletes.append(athlete)
                     total_new_athletes += 1
                 else:
-                    # Enrich missing DOB or country on existing athlete
+                    # Enrich missing DOB, country, or WA_ID on existing athlete
                     updated_fields = []
                     if dob_date and not athlete.DOB:
                         athlete.DOB = dob_date
@@ -475,6 +511,9 @@ class Command(BaseCommand):
                     if country and not athlete.countries:
                         athlete.countries = country
                         updated_fields.append("countries")
+                    if wa_id and not athlete.world_athletics_id:
+                        athlete.world_athletics_id = wa_id
+                        updated_fields.append("world_athletics_id")
                     if updated_fields and athlete.pk and not dry_run:
                         athlete.save()
 
@@ -530,6 +569,14 @@ class Command(BaseCommand):
         for ath in athletes_to_check:
             if ensure_first_sub4(ath, dry_run=dry_run):
                 first_sub4_updated += 1
+
+        if output_new_athletes and not dry_run:
+            out_path = Path(output_new_athletes)
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(json.dumps(new_athlete_ids), encoding="utf-8")
+            self.stdout.write(
+                f"Wrote {len(new_athlete_ids)} new athlete ID(s) to {out_path}"
+            )
 
         self.stdout.write(
             self.style.SUCCESS(

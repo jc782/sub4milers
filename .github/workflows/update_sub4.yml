@@ -10,9 +10,14 @@ on:
         description: 'Season year to scrape (leave blank for current year)'
         required: false
         default: ''
+      discover_recent_socials:
+        description: 'Optional: generate a Social Collab Issue for the N most recent inductees (e.g. 10)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   scrape-and-deploy:
@@ -41,9 +46,26 @@ jobs:
           INPUT_YEAR: ${{ github.event.inputs.year }}
         run: |
           if [ -n "$INPUT_YEAR" ]; then
-            python manage.py scrape_world_athletics --year $INPUT_YEAR
+            python manage.py scrape_world_athletics --year $INPUT_YEAR --output-new-athletes /tmp/new_athletes.json
           else
-            python manage.py scrape_world_athletics
+            python manage.py scrape_world_athletics --output-new-athletes /tmp/new_athletes.json
+          fi
+
+      - name: Discover Instagram & Strava accounts for new inductees
+        env:
+          DEBUG: 'True'
+          RECENT_COUNT: ${{ github.event.inputs.discover_recent_socials }}
+          SERPER_API_KEY: ${{ secrets.SERPER_API_KEY }}
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+          GOOGLE_SEARCH_API_KEY: ${{ secrets.GOOGLE_SEARCH_API_KEY }}
+          GOOGLE_SEARCH_CX: ${{ secrets.GOOGLE_SEARCH_CX }}
+        run: |
+          if [ -n "$RECENT_COUNT" ]; then
+            python manage.py find_athlete_socials --recent "$RECENT_COUNT" --markdown-output /tmp/new_sub4_socials.md
+          elif [ -f /tmp/new_athletes.json ] && [ "$(cat /tmp/new_athletes.json)" != "[]" ]; then
+            python manage.py find_athlete_socials --from-file /tmp/new_athletes.json --markdown-output /tmp/new_sub4_socials.md
+          else
+            echo "No newly inducted athletes requiring social lookup."
           fi
 
       - name: Build static site into docs/ and build/
@@ -63,4 +85,15 @@ jobs:
             git push origin "HEAD:${GITHUB_REF_NAME}"
           else
             echo "No new sub-4 performances found."
+          fi
+
+      - name: Open GitHub Issue with Instagram & Strava Collab Queue
+        if: hashFiles('/tmp/new_sub4_socials.md') != '' || github.event.inputs.discover_recent_socials != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -s /tmp/new_sub4_socials.md ]; then
+            gh issue create \
+              --title "New Sub-4 Inductees — Instagram & Strava Collab Queue ($(date -u +'%Y-%m-%d'))" \
+              --body-file /tmp/new_sub4_socials.md
           fi
