@@ -88,12 +88,14 @@ jobs:
           fi
 
       - name: Open GitHub Issue with Instagram & Strava Collab Queue
-        if: hashFiles('/tmp/new_sub4_socials.md') != '' || github.event.inputs.discover_recent_socials != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -s /tmp/new_sub4_socials.md ]; then
+            echo -e "\n---\ncc @${{ github.repository_owner }}" >> /tmp/new_sub4_socials.md
             gh issue create \
               --title "New Sub-4 Inductees — Instagram & Strava Collab Queue ($(date -u +'%Y-%m-%d'))" \
+              --assignee "${{ github.repository_owner }}" \
               --body-file /tmp/new_sub4_socials.md
           fi
+
