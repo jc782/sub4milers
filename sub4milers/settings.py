@@ -4,10 +4,10 @@ from decouple import config
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-DEBUG = config('DEBUG', cast=bool)
+DEBUG = config('DEBUG', default=True, cast=bool)
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
-SECRET_KEY = config('SECRET_KEY')
-ALLOWED_HOSTS = ['127.0.0.1', 'www.sub4milers.com','localhost']
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-sub4milers-static-build-key')
+ALLOWED_HOSTS = ['127.0.0.1', 'www.sub4milers.com', 'sub4milers.com', 'localhost', 'testserver']
 
 # Application definition
 
@@ -19,7 +19,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sub4',
-    'django_distill',
 ]
 
 MIDDLEWARE = [
@@ -45,6 +44,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'sub4.context_processors.site_metadata',
                 ],
         },
     },

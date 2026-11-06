@@ -7,6 +7,7 @@ from difflib import SequenceMatcher
 from django.core.management.base import BaseCommand
 
 from sub4.models import Athlete, Performance
+from sub4.management.commands.scrape_world_athletics import ensure_first_sub4
 
 
 def parse_time(raw):

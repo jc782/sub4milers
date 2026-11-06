@@ -378,7 +378,7 @@
       </div>
       <div class="hero-divider"></div>
       <div class="hero-stat">
-        <span class="hero-stat-value">3:43.13</span>
+        <span class="hero-stat-value">{{ world_record_str|default:"3:43.13" }}</span>
         <span class="hero-stat-label">World Record</span>
       </div>
       <div class="hero-divider"></div>
@@ -391,7 +391,7 @@
 
   <!-- Main content -->
   <main class="page-main">
-    <p class="updated-tag">↻ Last Updated: 23rd Feb 2026</p>
+    <p class="updated-tag">↻ Last Updated: {{ last_updated_str|default:"23rd Feb 2026" }}</p>
     {% block content %}{% endblock %}
   </main>
 
