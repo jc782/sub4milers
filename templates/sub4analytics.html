@@ -2,7 +2,7 @@
 {% load static %}
 {% load time_filters %}
 
-{% block title %}Statistical Ledger — Sub 4 Milers{% endblock %}
+{% block title %}Analytics — Sub 4 Milers{% endblock %}
 
 {% block content %}
 
@@ -13,22 +13,22 @@
 <style>
   .analytics-grid {
     display: grid;
-    gap: 28px;
+    gap: 24px;
   }
 
   .section-label {
     font-family: var(--font-type);
     font-size: 0.78rem;
     font-weight: 700;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--ink);
     margin-bottom: 12px;
     padding-bottom: 6px;
-    border-bottom: 1px dashed var(--rule-mid);
+    border-bottom: 1px solid var(--rule-light);
   }
 
-  /* ── LEDGER SUMMARY BOXES ────────────────────────────── */
+  /* ── SUMMARY BOXES ───────────────────────────────────── */
   .facts-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
@@ -44,14 +44,14 @@
     border-bottom: 1px solid var(--rule-light);
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    justify-content: flex-start;
   }
 
   .fact-label {
     font-family: var(--font-type);
     font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--ink-faded);
     margin-bottom: 6px;
@@ -59,10 +59,10 @@
 
   .fact-value {
     font-family: var(--font-type);
-    font-size: 1.65rem;
+    font-size: 1.6rem;
     font-weight: 700;
     letter-spacing: 0.02em;
-    color: var(--ribbon-red);
+    color: var(--ink);
     line-height: 1.15;
     font-variant-numeric: tabular-nums;
   }
@@ -74,15 +74,11 @@
     margin-top: 6px;
   }
 
-  /* ── GRAPH PAPER CHART FRAMES ────────────────────────── */
+  /* ── CHART FRAMES ────────────────────────────────────── */
   .chart-card {
     background-color: var(--paper);
     border: 1px solid var(--rule-dark);
     padding: 20px;
-    background-image:
-      linear-gradient(to right, rgba(24, 23, 21, 0.03) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(24, 23, 21, 0.03) 1px, transparent 1px);
-    background-size: 20px 20px;
   }
 
   .chart-card canvas {
@@ -110,7 +106,7 @@
     }
   }
 
-  /* ── ARCHIVAL WORLD MAP ──────────────────────────────── */
+  /* ── WORLD MAP ───────────────────────────────────────── */
   #map {
     height: 460px;
     width: 100%;
@@ -130,7 +126,7 @@
     font-size: 0.8rem !important;
     padding: 8px 12px !important;
     border-radius: 0 !important;
-    box-shadow: 3px 3px 0 rgba(24, 23, 21, 0.85) !important;
+    box-shadow: none !important;
     white-space: nowrap !important;
   }
 
@@ -149,66 +145,56 @@
   }
 </style>
 
-<div class="table-meta">
-  <span class="view-label">Analytics</span>
-  <span class="row-count">Compiled from <span id="row-count-num">{{ fun_facts.total_performances|floatformat:"0" }}</span> logged runs</span>
-</div>
-
 <div class="analytics-grid">
 
   <!-- ── Key Stats ─────────────────────────────────────────── -->
-  <div>
-    <div class="section-label">Summary</div>
-    <div class="facts-grid">
-      <div class="fact-card">
-        <div class="fact-label">Total Athletes</div>
-        <div class="fact-value">{{ fun_facts.total_athletes|floatformat:"0" }}</div>
-        <div class="fact-sub">Sub 4 Runners</div>
-      </div>
-      <div class="fact-card">
-        <div class="fact-label">Total Performances</div>
-        <div class="fact-value">{{ fun_facts.total_performances|floatformat:"0" }}</div>
-        <div class="fact-sub">Recorded Marks &lt; 4:00.00</div>
-      </div>
-      <div class="fact-card">
-        <div class="fact-label">World Record</div>
-        <div class="fact-value">{{ fun_facts.fastest_time|format_mile_time }}</div>
-        <div class="fact-sub">{{ fun_facts.fastest_athlete|title }} · {{ fun_facts.fastest_date|date:"d M Y"|upper }}</div>
-      </div>
-      <div class="fact-card">
-        <div class="fact-label">Most Sub-4 Runs</div>
-        <div class="fact-value">{{ fun_facts.most_perf_count }}</div>
-        <div class="fact-sub">{{ fun_facts.most_perf_name|title }}</div>
-      </div>
-      <div class="fact-card">
-        <div class="fact-label">Most Recent Sub 4</div>
-        <div class="fact-value">{{ fun_facts.most_recent_time|format_mile_time }}</div>
-        <div class="fact-sub">{{ fun_facts.most_recent_name|title }} · {{ fun_facts.most_recent_date|date:"d M Y"|upper }}</div>
-      </div>
+  <div class="facts-grid">
+    <div class="fact-card">
+      <div class="fact-label">Sub 4 Runners</div>
+      <div class="fact-value">{{ fun_facts.total_athletes|floatformat:"0" }}</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-label">Sub 4 Performances</div>
+      <div class="fact-value">{{ fun_facts.total_performances|floatformat:"0" }}</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-label">World Record</div>
+      <div class="fact-value">{{ fun_facts.fastest_time|format_mile_time }}</div>
+      <div class="fact-sub">{{ fun_facts.fastest_athlete|title }} · {{ fun_facts.fastest_date|date:"d M Y"|upper }}</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-label">Most Sub-4 Runs</div>
+      <div class="fact-value">{{ fun_facts.most_perf_count }}</div>
+      <div class="fact-sub">{{ fun_facts.most_perf_name|title }}</div>
+    </div>
+    <div class="fact-card">
+      <div class="fact-label">Most Recent Sub 4</div>
+      <div class="fact-value">{{ fun_facts.most_recent_time|format_mile_time }}</div>
+      <div class="fact-sub">{{ fun_facts.most_recent_name|title }} · {{ fun_facts.most_recent_date|date:"d M Y"|upper }}</div>
     </div>
   </div>
 
   <!-- ── Performances per year + Cumulative ────────────────── -->
   <div class="chart-row">
     <div class="chart-card">
-      <div class="section-label">Sub-4 Performances Per Year</div>
+      <div class="section-label">Sub 4 Performances by Year</div>
       <canvas id="perfsPerYear"></canvas>
     </div>
     <div class="chart-card">
-      <div class="section-label">Cumulative Sub 4 Runners (1954–Present)</div>
+      <div class="section-label">Cumulative Sub 4 Runners</div>
       <canvas id="cumulative"></canvas>
     </div>
   </div>
 
   <!-- ── Depth over time ───────────────────────────────────── -->
   <div class="chart-card">
-    <div class="section-label">Depth Progression — 10th &amp; 100th Fastest Marks Each Season</div>
+    <div class="section-label">10th &amp; 100th Fastest Time by Year</div>
     <canvas id="depth" style="max-height:300px"></canvas>
   </div>
 
   <!-- ── World map ─────────────────────────────────────────── -->
   <div class="chart-card">
-    <div class="section-label">Geographical Distribution of Sub-4 Milers by Nation</div>
+    <div class="section-label">Sub 4 Runners by Country</div>
     <div id="map"></div>
   </div>
 

@@ -2,17 +2,15 @@
 {% load static %}
 {% load time_filters %}
 
-{% block title %}Fastest Marks — Sub 4 Milers{% endblock %}
+{% block title %}Fastest — Sub 4 Milers{% endblock %}
 
 {% block content %}
 
-<div class="table-meta">
-  <span class="view-label">Fastest</span>
-  <span class="row-count">Showing <span id="row-count-num">—</span> athletes</span>
-</div>
-
-<div class="search-wrap">
-  <input type="text" class="search-input" id="tableSearch" placeholder="Type athlete name, country code, or time…" title="Search" autocomplete="off">
+<div class="table-controls">
+  <div class="search-wrap">
+    <input type="text" class="search-input" id="tableSearch" placeholder="Search..." title="Search" autocomplete="off">
+  </div>
+  <span class="row-count"><span id="row-count-num">—</span> athletes</span>
 </div>
 
 <div class="table-wrap">
@@ -20,26 +18,16 @@
     <thead>
       <tr>
         <th>Rank</th>
-        <th>Competitor</th>
-        <th>Best Mark</th>
-        <th class="hide-mobile">Date Recorded</th>
-        <th class="hide-mobile">Nat.</th>
+        <th>Name</th>
+        <th>Time</th>
+        <th class="hide-mobile">Date</th>
+        <th class="hide-mobile">Country</th>
       </tr>
     </thead>
     <tbody>
       {% for sub4 in athletes %}
       <tr>
-        <td class="col-rank">
-          {% if forloop.counter == 1 %}
-          <span class="rank-badge">#1</span>
-          {% elif forloop.counter == 2 %}
-          <span class="rank-badge">#2</span>
-          {% elif forloop.counter == 3 %}
-          <span class="rank-badge">#3</span>
-          {% else %}
-          {{ forloop.counter }}.
-          {% endif %}
-        </td>
+        <td class="col-rank">{{ forloop.counter }}.</td>
         <td class="col-name">{{ sub4.name | title }}</td>
         <td class="col-time">{{ sub4.best_time|format_mile_time }}</td>
         <td class="col-date hide-mobile">{% if sub4.best_date %}{{ sub4.best_date|date:"d M Y"|upper }}{% else %}<span class="date-unknown">unrecorded</span>{% endif %}</td>

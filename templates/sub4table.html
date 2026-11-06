@@ -2,17 +2,15 @@
 {% load static %}
 {% load time_filters %}
 
-{% block title %}Chronological Register — Sub 4 Milers{% endblock %}
+{% block title %}Sub 4 Milers{% endblock %}
 
 {% block content %}
 
-<div class="table-meta">
-  <span class="view-label">Chronological</span>
-  <span class="row-count">Showing <span id="row-count-num">—</span> athletes</span>
-</div>
-
-<div class="search-wrap">
-  <input type="text" class="search-input" id="tableSearch" placeholder="Type athlete name, country code, or date…" autocomplete="off">
+<div class="table-controls">
+  <div class="search-wrap">
+    <input type="text" class="search-input" id="tableSearch" placeholder="Search..." autocomplete="off">
+  </div>
+  <span class="row-count"><span id="row-count-num">—</span> athletes</span>
 </div>
 
 <div class="table-wrap">
@@ -20,11 +18,11 @@
     <thead>
       <tr>
         <th>No.</th>
-        <th>Competitor</th>
+        <th>Name</th>
         <th>First Sub-4</th>
-        <th>Date Recorded</th>
+        <th>Date</th>
         <th class="hide-mobile">Personal Best</th>
-        <th class="hide-mobile">Nat.</th>
+        <th class="hide-mobile">Country</th>
       </tr>
     </thead>
     <tbody>

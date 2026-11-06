@@ -2,17 +2,15 @@
 {% load static %}
 {% load time_filters %}
 
-{% block title %}Most Sub-4 Performances — Sub 4 Milers{% endblock %}
+{% block title %}Most Sub 4s — Sub 4 Milers{% endblock %}
 
 {% block content %}
 
-<div class="table-meta">
-  <span class="view-label">Most Sub 4s</span>
-  <span class="row-count">Showing <span id="row-count-num">—</span> athletes</span>
-</div>
-
-<div class="search-wrap">
-  <input type="text" class="search-input" id="tableSearch" placeholder="Type athlete name or country code…" autocomplete="off">
+<div class="table-controls">
+  <div class="search-wrap">
+    <input type="text" class="search-input" id="tableSearch" placeholder="Search..." autocomplete="off">
+  </div>
+  <span class="row-count"><span id="row-count-num">—</span> athletes</span>
 </div>
 
 <div class="table-wrap">
@@ -20,26 +18,16 @@
     <thead>
       <tr>
         <th>Rank</th>
-        <th>Competitor</th>
+        <th>Name</th>
         <th>Sub-4 Runs</th>
         <th class="hide-mobile">Personal Best</th>
-        <th class="hide-mobile">Nat.</th>
+        <th class="hide-mobile">Country</th>
       </tr>
     </thead>
     <tbody>
       {% for athlete in athletes %}
       <tr>
-        <td class="col-rank">
-          {% if forloop.counter == 1 %}
-            <span class="rank-badge">#1</span>
-          {% elif forloop.counter == 2 %}
-            <span class="rank-badge">#2</span>
-          {% elif forloop.counter == 3 %}
-            <span class="rank-badge">#3</span>
-          {% else %}
-            {{ forloop.counter }}.
-          {% endif %}
-        </td>
+        <td class="col-rank">{{ forloop.counter }}.</td>
         <td class="col-name">{{ athlete.name | title }}</td>
         <td class="col-count">{{ athlete.performance_count }}</td>
         <td class="col-pb hide-mobile">{{ athlete.best_time|format_mile_time }}</td>
