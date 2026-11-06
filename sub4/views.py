@@ -60,7 +60,7 @@ def mostRecent(request):
             Performance.objects.filter(athlete=OuterRef('pk'), is_first_sub4=True)
             .values('time')[:1]
         ))
-        .order_by('-first_sub4_date')
+        .order_by('-first_sub4_date', 'first_sub4_time')
     )
     return render(request, 'sub4recent.html', {'athletes': athletes})
 
@@ -91,7 +91,13 @@ def analytics(request):
         .order_by('-count')
         .first()
     )
-    most_recent = Performance.objects.filter(date__isnull=False).order_by('-date').select_related('athlete').first()
+    most_recent = (
+        Performance.objects
+        .filter(is_first_sub4=True, date__isnull=False)
+        .order_by('-date', 'time')
+        .select_related('athlete')
+        .first()
+    )
     most_countries = (
         Athlete.objects
         .values('countries')

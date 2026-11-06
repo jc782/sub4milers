@@ -31,9 +31,10 @@ def rewrite_relative_links(html, depth, current_slug):
         else:
             html = html.replace(f'href="/{slug}/"', f'href="{prefix}{slug}/index.html"')
 
-    # Rewrite static asset links in href/src attributes
+    # Rewrite static asset links in href/src/fetch attributes
     html = html.replace('href="/static/', f'href="{prefix}static/')
     html = html.replace('src="/static/', f'src="{prefix}static/')
+    html = html.replace('fetch("/static/', f'fetch("{prefix}static/')
 
     return html
 
