@@ -71,6 +71,7 @@ class Command(BaseCommand):
         # Write rendered HTML files to each output directory
         for out_dir in output_dirs:
             out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / ".nojekyll").write_text("", encoding="utf-8")
             for rel_dest, html in rendered_pages.items():
                 dest_file = out_dir / rel_dest
                 dest_file.parent.mkdir(parents=True, exist_ok=True)
