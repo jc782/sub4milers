@@ -177,7 +177,20 @@ def analytics(request):
             code = code.strip()
             if code:
                 country_counts[code] += 1
-    print(country_counts)
+
+    # ── Age at first sub-4 distribution ────────────────────────────────────────
+    age_counts = defaultdict(int)
+    first_perfs_with_dob = (
+        Performance.objects
+        .filter(is_first_sub4=True, date__isnull=False, athlete__DOB__isnull=False)
+        .select_related('athlete')
+    )
+    for p in first_perfs_with_dob:
+        days = (p.date - p.athlete.DOB).days
+        age_years = int(days / 365.2425)
+        if 15 <= age_years <= 40:
+            age_counts[age_years] += 1
+    age_hist = {str(age): age_counts[age] for age in range(min(age_counts, default=16), max(age_counts, default=34) + 1)} if age_counts else {}
 
     context = {
         'fun_facts': fun_facts,
@@ -186,5 +199,6 @@ def analytics(request):
         'depth_10th_json':     json.dumps(depth_10th),
         'depth_100th_json':    json.dumps(depth_100th),
         'country_counts_json': json.dumps(dict(country_counts)),
+        'age_hist_json':       json.dumps(age_hist),
     }
     return render(request, 'sub4analytics.html', context)

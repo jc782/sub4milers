@@ -186,10 +186,16 @@
     </div>
   </div>
 
-  <!-- ── Depth over time ───────────────────────────────────── -->
-  <div class="chart-card">
-    <div class="section-label">10th &amp; 100th Fastest Time by Year</div>
-    <canvas id="depth" style="max-height:300px"></canvas>
+  <!-- ── Depth over time + Age at First Sub-4 ─────────────── -->
+  <div class="chart-row">
+    <div class="chart-card">
+      <div class="section-label">10th &amp; 100th Fastest Time by Year</div>
+      <canvas id="depth"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="section-label">Age at First Sub 4</div>
+      <canvas id="ageHist"></canvas>
+    </div>
   </div>
 
   <!-- ── World map ─────────────────────────────────────────── -->
@@ -235,6 +241,7 @@
   const depth10Data  = {{ depth_10th_json|safe }};
   const depth100Data = {{ depth_100th_json|safe }};
   const countryData  = {{ country_counts_json|safe }};
+  const ageHistData  = {{ age_hist_json|default:"{}"|safe }};
 
   // ── 1. Performances per year ───────────────────────────────
   new Chart(document.getElementById('perfsPerYear'), {
@@ -348,6 +355,42 @@
       }
     }
   });
+
+  // ── 3b. Age at First Sub-4 Histogram ───────────────────────
+  if (document.getElementById('ageHist') && Object.keys(ageHistData).length > 0) {
+    new Chart(document.getElementById('ageHist'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(ageHistData),
+        datasets: [{
+          label: 'Runners',
+          data: Object.values(ageHistData),
+          backgroundColor: Object.keys(ageHistData).map(a => Number(a) <= 18 ? RIBBON_RED : 'rgba(24, 23, 21, 0.78)'),
+          hoverBackgroundColor: RIBBON_RED,
+          borderColor: INK,
+          borderWidth: 1,
+          borderRadius: 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            ...tooltipDefaults(),
+            callbacks: {
+              title: items => `Age ${items[0].label}`,
+              label: ctx => `${ctx.parsed.y} runner${ctx.parsed.y !== 1 ? 's' : ''}`
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, title: { display: true, text: 'Age (Years)', color: SUBTLE } },
+          y: { grid: { color: GRID_RULE } },
+        }
+      }
+    });
+  }
 
   // ── 4. Leaflet choropleth map ──────────────────────────────
   const CODE_MAP = {

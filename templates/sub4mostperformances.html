@@ -28,7 +28,7 @@
       {% for athlete in athletes %}
       <tr>
         <td class="col-rank">{{ forloop.counter }}.</td>
-        <td class="col-name">{{ athlete.name | title }}</td>
+        <td class="col-name">{{ athlete.name | title }}{% if athlete.instagram_handle %}<a class="ig-link" href="https://www.instagram.com/{{ athlete.instagram_handle }}/" target="_blank" rel="noopener">@{{ athlete.instagram_handle }}</a>{% endif %}</td>
         <td class="col-count">{{ athlete.performance_count }}</td>
         <td class="col-pb hide-mobile">{{ athlete.best_time|format_mile_time }}</td>
         <td class="col-country hide-mobile" data-country="{{ athlete.countries | title }}"></td>

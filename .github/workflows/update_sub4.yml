@@ -68,6 +68,12 @@ jobs:
             echo "No newly inducted athletes requiring social lookup."
           fi
 
+      - name: Generate Instagram Cards & This Week in Sub-4 History Digest
+        env:
+          DEBUG: 'True'
+        run: |
+          python manage.py generate_insta_content --skip-reels
+
       - name: Build static site into docs/ and build/
         env:
           DEBUG: 'True'
@@ -76,10 +82,10 @@ jobs:
 
       - name: Commit and push updates if database or pages changed
         run: |
-          if [ -n "$(git status --porcelain db.sqlite3 docs/ build/)" ]; then
+          if [ -n "$(git status --porcelain db.sqlite3 static/instagram/ docs/ build/)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add db.sqlite3 docs/ build/
+            git add db.sqlite3 static/instagram/ docs/ build/
             git commit -m "Automated World Athletics sub-4 update ($(date -u +'%Y-%m-%d'))"
             git pull --rebase origin "${GITHUB_REF_NAME}"
             git push origin "HEAD:${GITHUB_REF_NAME}"
@@ -92,10 +98,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -s /tmp/new_sub4_socials.md ]; then
+            if [ -s static/instagram/on_this_day/this_week_digest.md ]; then
+              echo -e "\n---\n" >> /tmp/new_sub4_socials.md
+              cat static/instagram/on_this_day/this_week_digest.md >> /tmp/new_sub4_socials.md
+            fi
             echo -e "\n---\ncc @${{ github.repository_owner }}" >> /tmp/new_sub4_socials.md
             gh issue create \
-              --title "New Sub-4 Inductees — Instagram & Strava Collab Queue ($(date -u +'%Y-%m-%d'))" \
+              --title "New Sub-4 Runners — Instagram Collab Queue & Weekly History ($(date -u +'%Y-%m-%d'))" \
               --assignee "${{ github.repository_owner }}" \
               --body-file /tmp/new_sub4_socials.md
           fi
+
 

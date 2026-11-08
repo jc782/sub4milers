@@ -28,7 +28,7 @@
       {% for sub4 in athletes %}
       <tr>
         <td class="col-rank">{{ forloop.counter }}.</td>
-        <td class="col-name">{{ sub4.name | title }}</td>
+        <td class="col-name">{{ sub4.name | title }}{% if sub4.instagram_handle %}<a class="ig-link" href="https://www.instagram.com/{{ sub4.instagram_handle }}/" target="_blank" rel="noopener">@{{ sub4.instagram_handle }}</a>{% endif %}</td>
         <td class="col-time">{{ sub4.first_sub4_time|format_mile_time }}</td>
         <td class="col-date hide-mobile">{% if sub4.first_sub4_date %}{{ sub4.first_sub4_date|date:"d M Y"|upper }}{% else %}<span class="date-unknown">unrecorded</span>{% endif %}</td>
         <td class="col-country hide-mobile" data-country="{{ sub4.countries | title }}"></td>
