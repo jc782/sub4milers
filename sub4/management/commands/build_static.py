@@ -77,15 +77,25 @@ class Command(BaseCommand):
                 dest_file.parent.mkdir(parents=True, exist_ok=True)
                 dest_file.write_text(html, encoding="utf-8")
 
-        # Ensure countries.geojson is up to date in docs/static/data/
+        # Ensure countries.geojson and favicons are up to date in output directories
         src_static = base_dir / "static"
-        docs_dir = base_dir / "docs"
-        if docs_dir in output_dirs and src_static.exists():
+        if src_static.exists():
             geojson_src = src_static / "data" / "countries.geojson"
-            if geojson_src.exists():
-                geojson_dst = docs_dir / "static" / "data" / "countries.geojson"
-                geojson_dst.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(geojson_src, geojson_dst)
+            favicon_src_dir = src_static / "img" / "favicon"
+            for out_dir in output_dirs:
+                if geojson_src.exists():
+                    geojson_dst = out_dir / "static" / "data" / "countries.geojson"
+                    geojson_dst.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(geojson_src, geojson_dst)
+                if favicon_src_dir.exists():
+                    favicon_dst_dir = out_dir / "static" / "img" / "favicon"
+                    favicon_dst_dir.mkdir(parents=True, exist_ok=True)
+                    for fav_file in favicon_src_dir.iterdir():
+                        if fav_file.is_file():
+                            shutil.copy2(fav_file, favicon_dst_dir / fav_file.name)
+                    ico_file = favicon_src_dir / "favicon.ico"
+                    if ico_file.exists():
+                        shutil.copy2(ico_file, out_dir / "favicon.ico")
 
         self.stdout.write(
             self.style.SUCCESS(
