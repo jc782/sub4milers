@@ -2,8 +2,8 @@ name: Update Sub-4 Milers from World Athletics
 
 on:
   schedule:
-    # Run weekly every Monday at 06:00 UTC
-    - cron: '0 6 * * 1'
+    # Run weekly every Monday at 07:17 UTC (off-minute avoids GitHub Actions top-of-hour cron drops)
+    - cron: '17 7 * * 1'
   workflow_dispatch:
     inputs:
       year:
@@ -93,20 +93,37 @@ jobs:
             echo "No new sub-4 performances found."
           fi
 
-      - name: Open GitHub Issue with Instagram & Strava Collab Queue
+      - name: Open Weekly GitHub Issue (New Sub-4 Runners + This Week in History)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          cat << 'EOF' > /tmp/weekly_issue_body.md
+          # Weekly Sub-4 Register Dispatch
+          EOF
+
           if [ -s /tmp/new_sub4_socials.md ]; then
-            if [ -s static/instagram/on_this_day/this_week_digest.md ]; then
-              echo -e "\n---\n" >> /tmp/new_sub4_socials.md
-              cat static/instagram/on_this_day/this_week_digest.md >> /tmp/new_sub4_socials.md
-            fi
-            echo -e "\n---\ncc @${{ github.repository_owner }}" >> /tmp/new_sub4_socials.md
-            gh issue create \
-              --title "New Sub-4 Runners — Instagram Collab Queue & Weekly History ($(date -u +'%Y-%m-%d'))" \
-              --assignee "${{ github.repository_owner }}" \
-              --body-file /tmp/new_sub4_socials.md
+            echo "" >> /tmp/weekly_issue_body.md
+            cat /tmp/new_sub4_socials.md >> /tmp/weekly_issue_body.md
+          else
+            cat << 'EOF' >> /tmp/weekly_issue_body.md
+
+          ## New First-Time Sub-4 Milers This Week
+          _No brand-new first-time sub-4:00 mile runners were added to the World Athletics toplist this week._
+          EOF
           fi
+
+          if [ -s static/instagram/on_this_day/this_week_digest.md ]; then
+            echo -e "\n---\n" >> /tmp/weekly_issue_body.md
+            cat static/instagram/on_this_day/this_week_digest.md >> /tmp/weekly_issue_body.md
+            echo -e "\n**Generated Card Image:** [\`static/instagram/on_this_day/this_week_in_sub4_history.png\`](https://github.com/${{ github.repository }}/blob/master/static/instagram/on_this_day/this_week_in_sub4_history.png)" >> /tmp/weekly_issue_body.md
+          fi
+
+          echo -e "\n---\ncc @${{ github.repository_owner }}" >> /tmp/weekly_issue_body.md
+
+          gh issue create \
+            --title "Weekly Sub-4 Dispatch — New Runners & This Week in History ($(date -u +'%Y-%m-%d'))" \
+            --assignee "${{ github.repository_owner }}" \
+            --body-file /tmp/weekly_issue_body.md
+
 
 
