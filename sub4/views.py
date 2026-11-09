@@ -26,7 +26,7 @@ def viewSub4(request):
             .values('time')[:1]
         ))
         .annotate(best_time=Min('performances__time'))
-        .order_by('first_sub4_date')
+        .order_by('first_sub4_date', 'first_sub4_time')
     )
     return render(request, 'sub4table.html', {'athletes': athletes})
 
