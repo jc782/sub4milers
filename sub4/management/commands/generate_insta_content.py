@@ -421,7 +421,7 @@ class Command(BaseCommand):
     def generate_age_carousel(self, out_dir: Path, fonts: dict, records: list[dict]):
         W, H = 1080, 1350
         counts = Counter(r["age_years"] for r in records)
-        ages = list(range(16, 35))
+        ages = list(range(15, 35))
         max_c = max(counts.get(a, 0) for a in ages) or 1
         total_n = len(records)
         median_days = sorted(r["age_days"] for r in records)[total_n // 2]
@@ -509,7 +509,7 @@ class Command(BaseCommand):
             d2.text((W - 96, y + 34), age_badge, font=fonts["mono_lg"], fill=ACCENT_RED, anchor="ra")
             y += row_h + 12
 
-        draw_footer(d2, W, H, fonts, "ONLY 4 RUNNERS HAVE EVER BROKEN 4:00 BEFORE TURNING 17 ->")
+        draw_footer(d2, W, H, fonts, "1 RUNNER AT AGE 15 · ONLY 4 BEFORE TURNING 17 ->")
         img2.save(out_dir / "slide_2_teen_prodigies.png", "PNG")
 
         # --- SLIDE 3: Oldest First-Time Sub-4 Milers (Late Bloomers) ---
@@ -623,7 +623,7 @@ class Command(BaseCommand):
         )
         draw_footer(base_draw, W, H, fonts, f"DATA: {len(records):,} VERIFIED BIRTHDATES · WORLD ATHLETICS")
 
-        ages = list(range(16, 35))
+        ages = list(range(15, 35))
         final_counts = Counter(r["age_years"] for r in records)
         global_max = max(final_counts.get(a, 0) for a in ages) or 1
 
@@ -634,7 +634,7 @@ class Command(BaseCommand):
             (2015, "2015: GRANT FISHER & MATTHEW MATON Continue High School Wave"),
             (2017, "2017: JAKOB INGEBRIGTSEN (NOR) — 16y 250d (3:58.07) · Youngest Ever"),
             (2023, "2023: CAMERON MYERS (AUS) — 16y 259d (3:55.44) · #2 Youngest Ever"),
-            (2025, "2025: SAM RUTHE (NZL) — 16y 287d (3:53.83) · Fastest 16-Year-Old"),
+            (2025, "2025: SAM RUTHE (NZL) 15y 341d (3:58.35) Youngest Ever"),
         ]
 
         total_frames = 12 * FPS
@@ -665,7 +665,7 @@ class Command(BaseCommand):
 
             y += 220
 
-            row_h = 56
+            row_h = 52
             label_x = 150
             bar_x0 = 175
             bar_max_w = W - bar_x0 - 150
