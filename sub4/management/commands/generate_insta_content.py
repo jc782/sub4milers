@@ -141,6 +141,7 @@ class Command(BaseCommand):
         parser.add_argument("--all", action="store_true", help="Generate inductee cards, On-This-Day card, Age Carousel, and all 4 Reels.")
         parser.add_argument("--inductees", type=int, default=6, help="Number of most recent sub-4 inductee cards to render.")
         parser.add_argument("--skip-reels", action="store_true", help="Skip rendering MP4 reels (faster for weekly cron if desired).")
+        parser.add_argument("--transparent-reels", action="store_true", help="Render text-free transparent-background reels (.mov + .webm) for Adobe Express.")
 
     def handle(self, *args, **options):
         base_dir = Path(settings.BASE_DIR)
@@ -152,12 +153,24 @@ class Command(BaseCommand):
         otd_dir = out_root / "on_this_day"
         carousel_dir = out_root / "carousels" / "age_series"
         reels_dir = out_root / "reels"
+        ae_reels_dir = out_root / "adobe_express_ready" / "reels"
 
-        for d in (inductees_dir, otd_dir, carousel_dir, reels_dir):
+        for d in (inductees_dir, otd_dir, carousel_dir, reels_dir, ae_reels_dir):
             d.mkdir(parents=True, exist_ok=True)
 
         self.stdout.write("Building chronological athlete ledger from database...")
         chron_athletes = self.build_chronological_ledger(socials)
+        age_records = [r for r in chron_athletes if r["age_days"] is not None and 14 * 365 <= r["age_days"] <= 45 * 365]
+
+        if options["transparent_reels"] and not options["all"]:
+            self.stdout.write("Rendering 4 transparent text-free Reels (.mov + .webm) for Adobe Express...")
+            for ext in (".mov", ".webm"):
+                self.render_reel_1_age_histogram(ae_reels_dir / f"reel_1_age_at_first_sub4_transparent{ext}", fonts, age_records, transparent=True)
+                self.render_reel_2_country_race(ae_reels_dir / f"reel_2_country_bar_race_transparent{ext}", fonts, chron_athletes, transparent=True)
+                self.render_reel_3_annual_surge(ae_reels_dir / f"reel_3_annual_sub4_surge_transparent{ext}", fonts, transparent=True)
+                self.render_reel_4_first_sub4_stopwatch(ae_reels_dir / f"reel_4_first_sub4_stopwatch_transparent{ext}", fonts, chron_athletes, transparent=True)
+            self.stdout.write(self.style.SUCCESS(f"Transparent reels generated in {ae_reels_dir}"))
+            return
 
         self.stdout.write("1. Generating recent Sub-4 Runner Cards...")
         self.generate_inductee_cards(inductees_dir, fonts, chron_athletes, count=options["inductees"])
@@ -166,7 +179,6 @@ class Command(BaseCommand):
         self.generate_on_this_day(otd_dir, fonts, chron_athletes)
 
         self.stdout.write("3. Generating 4-slide 'Age at First Sub-4' Data Carousel...")
-        age_records = [r for r in chron_athletes if r["age_days"] is not None and 14 * 365 <= r["age_days"] <= 45 * 365]
         self.generate_age_carousel(carousel_dir, fonts, age_records)
 
         if not options["skip_reels"]:
@@ -589,21 +601,43 @@ class Command(BaseCommand):
     # ------------------------------------------------------------------
     # HELPER: PIPE PIL FRAMES DIRECTLY TO FFMPEG
     # ------------------------------------------------------------------
-    def _open_ffmpeg_writer(self, out_path: Path, width: int = 1080, height: int = 1920, fps: int = 30):
+    def _open_ffmpeg_writer(self, out_path: Path, width: int = 1080, height: int = 1920, fps: int = 30, alpha: bool = False):
+        if alpha:
+            if out_path.suffix.lower() == ".webm":
+                encode_args = [
+                    "-c:v", "libvpx-vp9",
+                    "-pix_fmt", "yuva420p",
+                    "-b:v", "0",
+                    "-crf", "30",
+                    "-deadline", "realtime",
+                    "-cpu-used", "4",
+                ]
+            else:
+                encode_args = [
+                    "-c:v", "qtrle",
+                    "-pix_fmt", "argb",
+                ]
+            in_pix = "rgba"
+        else:
+            encode_args = [
+                "-c:v", "libx264",
+                "-pix_fmt", "yuv420p",
+                "-crf", "20",
+                "-preset", "fast",
+                "-movflags", "+faststart",
+            ]
+            in_pix = "rgb24"
+
         cmd = [
             "ffmpeg",
             "-y",
             "-f", "rawvideo",
             "-vcodec", "rawvideo",
-            "-pix_fmt", "rgb24",
+            "-pix_fmt", in_pix,
             "-s", f"{width}x{height}",
             "-r", str(fps),
             "-i", "-",
-            "-c:v", "libx264",
-            "-pix_fmt", "yuv420p",
-            "-crf", "20",
-            "-preset", "fast",
-            "-movflags", "+faststart",
+            *encode_args,
             str(out_path),
         ]
         return subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -611,17 +645,25 @@ class Command(BaseCommand):
     # ------------------------------------------------------------------
     # REEL 1: AGE AT FIRST SUB-4 ANIMATED HISTOGRAM (1954 -> 2026)
     # ------------------------------------------------------------------
-    def render_reel_1_age_histogram(self, out_path: Path, fonts: dict, records: list[dict]):
+    def render_reel_1_age_histogram(self, out_path: Path, fonts: dict, records: list[dict], transparent: bool = False):
         W, H, FPS = 1080, 1920, 30
-        base_canvas = make_paper_canvas(W, H)
-        base_draw = ImageDraw.Draw(base_canvas)
-        y_top = draw_header(
-            base_draw, W, fonts,
-            kicker="Sub 4 Data Animation · Reel 01",
-            title="AGE AT FIRST SUB-4:00",
-            subtitle="Every Runner's Debut Age Added Chronologically (1954–2026)",
-        )
-        draw_footer(base_draw, W, H, fonts, f"DATA: {len(records):,} VERIFIED BIRTHDATES · WORLD ATHLETICS")
+        if transparent:
+            base_canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+            y_top = 310
+            card_bg = (239, 233, 220, 235)
+            track_bg = (24, 23, 21, 24)
+        else:
+            base_canvas = make_paper_canvas(W, H)
+            base_draw = ImageDraw.Draw(base_canvas)
+            y_top = draw_header(
+                base_draw, W, fonts,
+                kicker="Sub 4 Data Animation · Reel 01",
+                title="AGE AT FIRST SUB-4:00",
+                subtitle="Every Runner's Debut Age Added Chronologically (1954–2026)",
+            )
+            draw_footer(base_draw, W, H, fonts, f"DATA: {len(records):,} VERIFIED BIRTHDATES · WORLD ATHLETICS")
+            card_bg = BG_CARD
+            track_bg = BG_CARD
 
         ages = list(range(15, 35))
         final_counts = Counter(r["age_years"] for r in records)
@@ -639,7 +681,7 @@ class Command(BaseCommand):
 
         total_frames = 12 * FPS
         hold_frames = 3 * FPS
-        proc = self._open_ffmpeg_writer(out_path, W, H, FPS)
+        proc = self._open_ffmpeg_writer(out_path, W, H, FPS, alpha=transparent)
 
         for f_idx in range(total_frames + hold_frames):
             progress = min(1.0, f_idx / max(1, total_frames - 1))
@@ -653,7 +695,7 @@ class Command(BaseCommand):
             draw = ImageDraw.Draw(frame)
 
             y = y_top
-            draw.rectangle([76, y, W - 76, y + 185], fill=BG_CARD, outline=INK_BLACK, width=2)
+            draw.rectangle([76, y, W - 76, y + 185], fill=card_bg, outline=INK_BLACK, width=2)
             draw.text((108, y + 22), "YEAR", font=fonts["bold_xs"], fill=INK_MUTED)
             draw.text((108, y + 54), str(cur_year), font=fonts["mono_xxl"], fill=ACCENT_RED)
 
@@ -681,7 +723,7 @@ class Command(BaseCommand):
                 bar_col = ACCENT_RED if is_teen else INK_BLACK
 
                 draw.text((label_x, y + 10), f"{age} YRS", font=fonts["bold_xs"], fill=bar_col, anchor="ra")
-                draw.rectangle([bar_x0, y + 8, bar_x0 + bar_max_w, y + row_h - 12], fill=BG_CARD)
+                draw.rectangle([bar_x0, y + 8, bar_x0 + bar_max_w, y + row_h - 12], fill=track_bg)
                 if bw > 0:
                     draw.rectangle([bar_x0, y + 8, bar_x0 + max(bw, 6), y + row_h - 12], fill=bar_col)
                 if c > 0:
@@ -694,7 +736,7 @@ class Command(BaseCommand):
                     active_m = m_txt
 
             box_y = H - 255
-            draw.rectangle([76, box_y, W - 76, box_y + 130], fill=BG_CARD, outline=ACCENT_RED, width=3)
+            draw.rectangle([76, box_y, W - 76, box_y + 130], fill=card_bg, outline=ACCENT_RED, width=3)
             draw.text((104, box_y + 20), "CHRONICLE MILESTONE DISPATCH", font=fonts["bold_xs"], fill=ACCENT_RED)
             draw.text((104, box_y + 62), active_m[:54], font=fonts["mono_sm"], fill=INK_BLACK)
 
@@ -706,17 +748,23 @@ class Command(BaseCommand):
     # ------------------------------------------------------------------
     # REEL 2: SUB-4 MILERS BY COUNTRY BAR CHART RACE (1954 -> 2026)
     # ------------------------------------------------------------------
-    def render_reel_2_country_race(self, out_path: Path, fonts: dict, chron_athletes: list[dict]):
+    def render_reel_2_country_race(self, out_path: Path, fonts: dict, chron_athletes: list[dict], transparent: bool = False):
         W, H, FPS = 1080, 1920, 30
-        base_canvas = make_paper_canvas(W, H)
-        base_draw = ImageDraw.Draw(base_canvas)
-        y_top = draw_header(
-            base_draw, W, fonts,
-            kicker="Sub 4 Data Animation · Reel 02",
-            title="SUB-4 MILERS BY NATION",
-            subtitle="Cumulative Sub-4:00 Mile Runners by Country (1954–2026)",
-        )
-        draw_footer(base_draw, W, H, fonts, f"SOURCE: SUB 4 REGISTER · {len(chron_athletes):,} ATHLETES WORLDWIDE")
+        if transparent:
+            base_canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+            y_top = 310
+            card_bg = (239, 233, 220, 235)
+        else:
+            base_canvas = make_paper_canvas(W, H)
+            base_draw = ImageDraw.Draw(base_canvas)
+            y_top = draw_header(
+                base_draw, W, fonts,
+                kicker="Sub 4 Data Animation · Reel 02",
+                title="SUB-4 MILERS BY NATION",
+                subtitle="Cumulative Sub-4:00 Mile Runners by Country (1954–2026)",
+            )
+            draw_footer(base_draw, W, H, fonts, f"SOURCE: SUB 4 REGISTER · {len(chron_athletes):,} ATHLETES WORLDWIDE")
+            card_bg = BG_CARD
 
         years = list(range(1954, 2027))
         yearly_counts = {}
@@ -735,7 +783,7 @@ class Command(BaseCommand):
 
         total_frames = 12 * FPS
         hold_frames = 3 * FPS
-        proc = self._open_ffmpeg_writer(out_path, W, H, FPS)
+        proc = self._open_ffmpeg_writer(out_path, W, H, FPS, alpha=transparent)
 
         for f_idx in range(total_frames + hold_frames):
             progress = min(1.0, f_idx / max(1, total_frames - 1))
@@ -759,7 +807,7 @@ class Command(BaseCommand):
             draw = ImageDraw.Draw(frame)
 
             y = y_top
-            draw.rectangle([76, y, W - 76, y + 185], fill=BG_CARD, outline=INK_BLACK, width=2)
+            draw.rectangle([76, y, W - 76, y + 185], fill=card_bg, outline=INK_BLACK, width=2)
             draw.text((108, y + 22), "SEASON", font=fonts["bold_xs"], fill=INK_MUTED)
             draw.text((108, y + 54), str(yr_lo), font=fonts["mono_xxl"], fill=ACCENT_RED)
             draw.text((450, y + 22), "TOTAL SUB-4 MILERS WORLDWIDE", font=fonts["bold_xs"], fill=INK_MUTED)
@@ -789,17 +837,23 @@ class Command(BaseCommand):
     # ------------------------------------------------------------------
     # REEL 3: THE SUB-4 EXPLOSION — RUNS PER YEAR (1954 -> 2025)
     # ------------------------------------------------------------------
-    def render_reel_3_annual_surge(self, out_path: Path, fonts: dict):
+    def render_reel_3_annual_surge(self, out_path: Path, fonts: dict, transparent: bool = False):
         W, H, FPS = 1080, 1920, 30
-        base_canvas = make_paper_canvas(W, H)
-        base_draw = ImageDraw.Draw(base_canvas)
-        y_top = draw_header(
-            base_draw, W, fonts,
-            kicker="Sub 4 Data Animation · Reel 03",
-            title="THE SUB-4 EXPLOSION",
-            subtitle="Total Sub-4:00 Mile Performances Recorded Each Year (1954–2025)",
-        )
-        draw_footer(base_draw, W, H, fonts, "7,774 TOTAL SUB-4:00 MILES LOGGED IN THE ARCHIVE")
+        if transparent:
+            base_canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+            y_top = 310
+            card_bg = (239, 233, 220, 235)
+        else:
+            base_canvas = make_paper_canvas(W, H)
+            base_draw = ImageDraw.Draw(base_canvas)
+            y_top = draw_header(
+                base_draw, W, fonts,
+                kicker="Sub 4 Data Animation · Reel 03",
+                title="THE SUB-4 EXPLOSION",
+                subtitle="Total Sub-4:00 Mile Performances Recorded Each Year (1954–2025)",
+            )
+            draw_footer(base_draw, W, H, fonts, "7,774 TOTAL SUB-4:00 MILES LOGGED IN THE ARCHIVE")
+            card_bg = BG_CARD
 
         runs_dates = list(Performance.objects.exclude(date__isnull=True).values_list("date", flat=True))
         by_year = Counter(d.year for d in runs_dates if 1954 <= d.year <= 2025)
@@ -817,7 +871,7 @@ class Command(BaseCommand):
 
         total_frames = 11 * FPS
         hold_frames = 3 * FPS
-        proc = self._open_ffmpeg_writer(out_path, W, H, FPS)
+        proc = self._open_ffmpeg_writer(out_path, W, H, FPS, alpha=transparent)
 
         for f_idx in range(total_frames + hold_frames):
             progress = min(1.0, f_idx / max(1, total_frames - 1))
@@ -831,7 +885,7 @@ class Command(BaseCommand):
             draw = ImageDraw.Draw(frame)
 
             y = y_top
-            draw.rectangle([76, y, W - 76, y + 185], fill=BG_CARD, outline=INK_BLACK, width=2)
+            draw.rectangle([76, y, W - 76, y + 185], fill=card_bg, outline=INK_BLACK, width=2)
             draw.text((108, y + 22), "YEAR", font=fonts["bold_xs"], fill=INK_MUTED)
             draw.text((108, y + 54), str(cur_yr), font=fonts["mono_xxl"], fill=ACCENT_RED)
 
@@ -866,7 +920,7 @@ class Command(BaseCommand):
                     note_txt = e_txt
 
             box_y = H - 245
-            draw.rectangle([76, box_y, W - 76, box_y + 125], fill=BG_CARD, outline=ACCENT_RED, width=3)
+            draw.rectangle([76, box_y, W - 76, box_y + 125], fill=card_bg, outline=ACCENT_RED, width=3)
             draw.text((104, box_y + 18), "HISTORICAL CONTEXT", font=fonts["bold_xs"], fill=ACCENT_RED)
             draw.text((104, box_y + 58), note_txt[:55], font=fonts["mono_sm"], fill=INK_BLACK)
 
@@ -878,17 +932,25 @@ class Command(BaseCommand):
     # ------------------------------------------------------------------
     # REEL 4: HOW FAST IS A RUNNER'S FIRST SUB-4? (3:59.99 -> 3:49.00)
     # ------------------------------------------------------------------
-    def render_reel_4_first_sub4_stopwatch(self, out_path: Path, fonts: dict, chron_athletes: list[dict]):
+    def render_reel_4_first_sub4_stopwatch(self, out_path: Path, fonts: dict, chron_athletes: list[dict], transparent: bool = False):
         W, H, FPS = 1080, 1920, 30
-        base_canvas = make_paper_canvas(W, H)
-        base_draw = ImageDraw.Draw(base_canvas)
-        y_top = draw_header(
-            base_draw, W, fonts,
-            kicker="Sub 4 Data Animation · Reel 04",
-            title="HOW FAST IS A FIRST SUB-4?",
-            subtitle="Stopwatch Distribution of Every Runner's First Sub-4:00 Mile",
-        )
-        draw_footer(base_draw, W, H, fonts, "OVER HALF OF ALL MILERS BREAK 4:00 BY LESS THAN 1 SECOND")
+        if transparent:
+            base_canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+            y_top = 310
+            card_bg = (239, 233, 220, 235)
+            track_bg = (24, 23, 21, 24)
+        else:
+            base_canvas = make_paper_canvas(W, H)
+            base_draw = ImageDraw.Draw(base_canvas)
+            y_top = draw_header(
+                base_draw, W, fonts,
+                kicker="Sub 4 Data Animation · Reel 04",
+                title="HOW FAST IS A FIRST SUB-4?",
+                subtitle="Stopwatch Distribution of Every Runner's First Sub-4:00 Mile",
+            )
+            draw_footer(base_draw, W, H, fonts, "OVER HALF OF ALL MILERS BREAK 4:00 BY LESS THAN 1 SECOND")
+            card_bg = BG_CARD
+            track_bg = BG_CARD
 
         debut_marks = [
             (r["sec"], r["name"], r["country"], r["mark"], r["date"].year)
@@ -916,7 +978,7 @@ class Command(BaseCommand):
 
         total_frames = 10 * FPS
         hold_frames = 3 * FPS
-        proc = self._open_ffmpeg_writer(out_path, W, H, FPS)
+        proc = self._open_ffmpeg_writer(out_path, W, H, FPS, alpha=transparent)
 
         for f_idx in range(total_frames + hold_frames):
             progress = min(1.0, f_idx / max(1, total_frames - 1))
@@ -928,7 +990,7 @@ class Command(BaseCommand):
             draw = ImageDraw.Draw(frame)
 
             y = y_top
-            draw.rectangle([76, y, W - 76, y + 195], fill=BG_CARD, outline=ACCENT_RED, width=3)
+            draw.rectangle([76, y, W - 76, y + 195], fill=card_bg, outline=ACCENT_RED, width=3)
             draw.text((108, y + 22), "STOPWATCH SWEEP", font=fonts["bold_xs"], fill=ACCENT_RED)
             draw.text((108, y + 56), format_seconds(cur_sec), font=fonts["mono_xxl"], fill=INK_BLACK)
 
@@ -949,7 +1011,7 @@ class Command(BaseCommand):
                 col = ACCENT_RED if is_359 else INK_BLACK
 
                 draw.text((84, y + 22), label, font=fonts["mono_sm"], fill=col)
-                draw.rectangle([bar_x0, y + 14, bar_x0 + bar_max_w, y + row_h - 24], fill=BG_CARD)
+                draw.rectangle([bar_x0, y + 14, bar_x0 + bar_max_w, y + row_h - 24], fill=track_bg)
                 if bw > 0:
                     draw.rectangle([bar_x0, y + 14, bar_x0 + max(bw, 6), y + row_h - 24], fill=col)
                 if c > 0:
