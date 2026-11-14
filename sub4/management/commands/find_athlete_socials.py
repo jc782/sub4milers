@@ -319,6 +319,15 @@ def search_web_links(session, query):
     return []
 
 
+RUNNING_CUES = (
+    "track", "mile", "miler", "1500", "5000", "800m", "3000", "10000",
+    "run", "runner", "running", "athletic", "athletics", "xc", "t&f", "tf",
+    "cross country", "ncaa", "olymp", "pro", "nike", "adidas", "hoka",
+    "puma", "brooks", "new balance", "asics", "strava", "sub4", "sub-4",
+    "distance", "harrier", "3:5", "3:4", "university", "college",
+)
+
+
 def score_social_result(athlete_name, handle_or_id, title, snippet):
     """Score how likely a search result belongs to the target athlete."""
     tokens = [t for t in normalize_text(athlete_name).split() if len(t) > 1]
@@ -328,16 +337,22 @@ def score_social_result(athlete_name, handle_or_id, title, snippet):
     handle_clean = re.sub(r"[^a-z0-9]", "", str(handle_or_id).lower())
 
     score = 0.0
+    matched_tokens = 0
     for tok in tokens:
-        if tok in haystack:
+        in_hay = tok in haystack
+        in_handle = tok in handle_clean
+        if in_hay:
             score += 0.35
-        if tok in handle_clean:
+            matched_tokens += 1
+        if in_handle:
             score += 0.25
 
-    if any(
-        w in haystack for w in ["track", "mile", "runner", "running", "athletics", "xc"]
-    ):
-        score += 0.20
+    if any(w in haystack for w in RUNNING_CUES):
+        score += 0.25
+
+    # Require at least 2 name tokens (or 1 if 1-word name) to avoid first-name-only false positives
+    if len(tokens) >= 2 and matched_tokens < 2:
+        score = min(score, 0.40)
 
     return min(score, 1.0)
 
@@ -693,8 +708,12 @@ class Command(BaseCommand):
 
         def search_one(ath):
             s = requests.Session()
-            country_hint = (ath.countries or "").split(",")[0].strip()
-            q = f'"{ath.name.title()}" ({country_hint} OR track OR runner OR mile) site:instagram.com'
+            # Strip trailing single-letter initials (e.g. "colin smith p" -> "colin smith")
+            clean_name = re.sub(r"\s+[a-zA-Z]$", "", ath.name.strip()).title()
+            # For 4+ word names, use first + last tokens in quotes to avoid over-constraining
+            parts = clean_name.split()
+            query_name = f"{parts[0]} {parts[-1]}" if len(parts) >= 4 else clean_name
+            q = f'"{query_name}" site:instagram.com'
             results = search_web_links(s, q)
             best_ig = None
             best_score = 0.0
@@ -703,9 +722,9 @@ class Command(BaseCommand):
                 if not cand:
                     continue
                 sc = score_social_result(
-                    ath.name, cand, res.get("title", ""), res.get("snippet", "")
+                    query_name, cand, res.get("title", ""), res.get("snippet", "")
                 )
-                if sc > best_score and sc >= 0.45:
+                if sc > best_score and sc >= 0.65:
                     best_score = sc
                     best_ig = cand
             return ath, best_ig
