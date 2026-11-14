@@ -504,10 +504,25 @@ class Command(BaseCommand):
             action="store_true",
             help="Re-run discovery even if instagram_handle and strava_id are already set",
         )
+        parser.add_argument(
+            "--search-since",
+            type=int,
+            default=0,
+            help="Run Tier 4 web search (Serper/Brave/Google) for athletes without IG who debuted in or after this year (e.g. 2000)",
+        )
+        parser.add_argument(
+            "--search-limit",
+            type=int,
+            default=0,
+            help="Optional max number of athletes to query during --search-since (0 = all)",
+        )
 
     def handle(self, *args, **options):
         if options["all"]:
             self.handle_bulk_all(options)
+            return
+        if options["search_since"]:
+            self.handle_search_since(options)
             return
 
         from_file = options["from_file"]
@@ -643,6 +658,142 @@ class Command(BaseCommand):
 
         if csv_out:
             self.write_csv_export(report_rows, Path(csv_out), only_matched=False)
+
+    # ── BULK WEB SEARCH FOR POST-YEAR ATHLETES MISSING INSTAGRAM ────────────
+    def handle_search_since(self, options):
+        since_year = options["search_since"]
+        limit = options["search_limit"]
+        csv_out = options["csv_output"] or "static/data/sub4_instagram_handles.csv"
+        full_csv_out = options["full_csv_output"] or "static/data/sub4_all_athletes_socials.csv"
+
+        if not any(
+            os.environ.get(k, "").strip()
+            for k in ("SERPER_API_KEY", "BRAVE_API_KEY", "GOOGLE_SEARCH_API_KEY")
+        ):
+            self.stderr.write(
+                self.style.ERROR(
+                    "No search API key found in environment (SERPER_API_KEY, BRAVE_API_KEY, or GOOGLE_SEARCH_API_KEY)."
+                )
+            )
+            return
+
+        athletes = list(
+            Athlete.objects.annotate(first_date=Min("performances__date"))
+            .filter(first_date__year__gte=since_year)
+            .prefetch_related("performances")
+            .order_by("-first_date", "name")
+        )
+        missing = [a for a in athletes if not clean_ig_handle(a.instagram_handle)]
+        if limit > 0:
+            missing = missing[:limit]
+
+        self.stdout.write(
+            f"Found {len(athletes)} athletes since {since_year}; querying web search for {len(missing)} missing Instagram handles..."
+        )
+
+        def search_one(ath):
+            s = requests.Session()
+            country_hint = (ath.countries or "").split(",")[0].strip()
+            q = f'"{ath.name.title()}" ({country_hint} OR track OR runner OR mile) site:instagram.com'
+            results = search_web_links(s, q)
+            best_ig = None
+            best_score = 0.0
+            for res in results:
+                cand = clean_ig_handle(res.get("link"))
+                if not cand:
+                    continue
+                sc = score_social_result(
+                    ath.name, cand, res.get("title", ""), res.get("snippet", "")
+                )
+                if sc > best_score and sc >= 0.45:
+                    best_score = sc
+                    best_ig = cand
+            return ath, best_ig
+
+        matched_athletes = []
+        source_by_id = {}
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(search_one, a) for a in missing]
+            done = 0
+            for fut in as_completed(futures):
+                done += 1
+                ath, ig = fut.result()
+                if ig:
+                    ath.instagram_handle = ig
+                    matched_athletes.append(ath)
+                    source_by_id[ath.pk] = "Web Search"
+                if done % 100 == 0 or done == len(missing):
+                    self.stdout.write(
+                        f"  ...queried {done}/{len(missing)} ({len(matched_athletes)} matched)"
+                    )
+
+        if matched_athletes:
+            Athlete.objects.bulk_update(
+                matched_athletes, ["instagram_handle"], batch_size=500
+            )
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Saved {len(matched_athletes)} new Instagram handles to db.sqlite3."
+                )
+            )
+        else:
+            self.stdout.write("No new Instagram handles matched.")
+
+        # Export updated CSVs across all athletes
+        all_athletes = list(Athlete.objects.all().prefetch_related("performances"))
+        chrono_ranks = compute_chronological_ranks()
+        report_rows = []
+        for a in all_athletes:
+            perfs = list(a.performances.all())
+            first_perf = next((p for p in perfs if p.is_first_sub4), None)
+            if not first_perf and perfs:
+                dated = [p for p in perfs if p.date]
+                first_perf = (
+                    min(dated, key=lambda p: (p.date, p.time))
+                    if dated
+                    else min(perfs, key=lambda p: p.time)
+                )
+            best_perf = min(perfs, key=lambda p: p.time) if perfs else None
+            mark_str = format_mile_time(first_perf.time) if first_perf else "—"
+            date_str = (
+                first_perf.date.strftime("%Y-%m-%d")
+                if (first_perf and first_perf.date)
+                else ""
+            )
+            venue_str = (first_perf.location or "") if first_perf else ""
+            pb_str = format_mile_time(best_perf.time) if best_perf else mark_str
+            report_rows.append({
+                "athlete": a,
+                "member_num": chrono_ranks.get(a.pk, 99999),
+                "mark": mark_str,
+                "date": date_str,
+                "raw_date": first_perf.date if first_perf else None,
+                "venue": venue_str,
+                "pb": pb_str,
+                "perf_count": len(perfs),
+                "instagram": a.instagram_handle,
+                "strava_id": a.strava_id,
+                "wa_id": a.world_athletics_id,
+                "source": source_by_id.get(
+                    a.pk,
+                    "Verified" if (a.instagram_handle or a.strava_id) else "Search Link",
+                ),
+            })
+
+        report_rows.sort(
+            key=lambda r: (
+                r["raw_date"] or datetime.date(1900, 1, 1),
+                -(r["member_num"] if isinstance(r["member_num"], int) else 0),
+            ),
+            reverse=True,
+        )
+        matched_count = self.write_csv_export(report_rows, Path(csv_out), only_matched=True)
+        total_count = self.write_csv_export(report_rows, Path(full_csv_out), only_matched=False)
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Exported {matched_count} matched handles to {csv_out} and {total_count} total rows to {full_csv_out}."
+            )
+        )
 
     # ── FAST BULK DISCOVERY ACROSS ALL ~2,389 ATHLETES ─────────────────────
     def handle_bulk_all(self, options):
