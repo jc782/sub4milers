@@ -781,9 +781,11 @@ class Command(BaseCommand):
             yearly_counts[yr] = dict(running)
             yearly_total[yr] = idx
 
-        total_frames = 12 * FPS
+        total_frames = 20 * FPS
         hold_frames = 3 * FPS
         proc = self._open_ffmpeg_writer(out_path, W, H, FPS, alpha=transparent)
+
+        smooth_rank = {}
 
         for f_idx in range(total_frames + hold_frames):
             progress = min(1.0, f_idx / max(1, total_frames - 1))
@@ -799,7 +801,16 @@ class Command(BaseCommand):
                 c: (1.0 - alpha) * c_lo.get(c, 0) + alpha * c_hi.get(c, 0)
                 for c in all_countries
             }
-            top12 = sorted(interp.items(), key=lambda kv: (-kv[1], kv[0]))[:12]
+            ranked_all = sorted(interp.items(), key=lambda kv: (-kv[1], kv[0]))
+            target_rank_map = {code: r_idx for r_idx, (code, _) in enumerate(ranked_all)}
+
+            for code, r_idx in target_rank_map.items():
+                if code not in smooth_rank:
+                    smooth_rank[code] = float(min(r_idx, 12))
+                else:
+                    smooth_rank[code] += (r_idx - smooth_rank[code]) * 0.18
+
+            top12 = ranked_all[:12]
             max_val = max((v for _, v in top12), default=1.0) or 1.0
             tot_runners = int(round((1.0 - alpha) * yearly_total[yr_lo] + alpha * yearly_total[yr_hi]))
 
@@ -819,12 +830,25 @@ class Command(BaseCommand):
             bar_x0 = 215
             bar_max_w = W - bar_x0 - 165
 
-            for rank_idx, (code, val) in enumerate(top12, start=1):
-                ry = y + (rank_idx - 1) * row_h
-                bw = int((val / max_val) * bar_max_w)
-                bar_col = ACCENT_RED if rank_idx == 1 else INK_BLACK
+            # Fixed rank slot labels on the left
+            for slot_idx in range(1, 13):
+                slot_y = y + (slot_idx - 1) * row_h
+                draw.text((92, slot_y + 18), f"#{slot_idx:02d}", font=fonts["mono_xs"], fill=INK_MUTED)
 
-                draw.text((92, ry + 18), f"#{rank_idx:02d}", font=fonts["mono_xs"], fill=INK_MUTED)
+            # Draw visible countries smoothly gliding to their target rank slot
+            visible = [
+                (code, interp[code], smooth_rank[code], target_rank_map[code])
+                for code in interp
+                if smooth_rank.get(code, 99.0) <= 11.6
+            ]
+            # Draw lower ranks first so #1 leader glides cleanly on top during overtakes
+            visible.sort(key=lambda item: -item[2])
+
+            for code, val, s_rank, t_rank in visible:
+                ry = int(round(y + s_rank * row_h))
+                bw = int((val / max_val) * bar_max_w)
+                bar_col = ACCENT_RED if t_rank == 0 else INK_BLACK
+
                 draw.text((148, ry + 14), code, font=fonts["mono_md"], fill=INK_BLACK)
                 draw.rectangle([bar_x0, ry + 12, bar_x0 + max(bw, 8), ry + row_h - 18], fill=bar_col)
                 draw.text((bar_x0 + max(bw, 8) + 16, ry + 16), f"{int(round(val)):,}", font=fonts["mono_md"], fill=bar_col)
