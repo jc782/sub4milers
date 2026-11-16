@@ -130,12 +130,12 @@ def name_similarity(a, b):
 
 
 def find_matching_athlete(
-    name, country, dob, birth_year, existing_athletes, wa_id=None, threshold=0.85
+    name, country, dob, birth_year, existing_athletes, wa_id=None, threshold=0.85, perf_date=None
 ):
     """
     Find an existing Athlete matching wa_id, or name + optional country/DOB.
-    Protects against merging distinct athletes with the same name but different birth years
-    (e.g. Reuben Reina Sr. b. 1967 vs Reuben Reina Jr. b. 2003).
+    Protects against merging distinct athletes with the same name but different birth years,
+    conflicting World Athletics IDs, or impossible performance ages.
     """
     if wa_id:
         for athlete in existing_athletes:
@@ -148,9 +148,19 @@ def find_matching_athlete(
     norm_country = country.strip().upper() if country else ""
 
     for athlete in existing_athletes:
-        # If both have known birth years and they differ by > 2 years, do not match
-        if birth_year and athlete.DOB and abs(birth_year - athlete.DOB.year) > 2:
+        # Never merge two athletes who have different World Athletics IDs
+        if wa_id and athlete.world_athletics_id and wa_id != athlete.world_athletics_id:
             continue
+
+        # If both have known birth years and they differ by > 2 years, do not match
+        if birth_year and athlete.DOB and athlete.DOB.year > 1910 and abs(birth_year - athlete.DOB.year) > 2:
+            continue
+
+        # Never match a performance date that would give an impossible age (< 14 or > 42)
+        if perf_date and athlete.DOB and athlete.DOB.year > 1910:
+            age_yrs = (perf_date - athlete.DOB).days / 365.2425
+            if age_yrs < 14.0 or age_yrs > 42.0:
+                continue
 
         score = name_similarity(name, athlete.name)
         if score < 0.55:
@@ -464,6 +474,7 @@ class Command(BaseCommand):
                     existing_athletes=existing_athletes,
                     wa_id=wa_id,
                     threshold=threshold,
+                    perf_date=perf_date,
                 )
 
                 # 2. Fallback: identical time + date with similar name
