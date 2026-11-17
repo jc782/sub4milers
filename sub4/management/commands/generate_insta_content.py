@@ -169,6 +169,7 @@ class Command(BaseCommand):
                 self.render_reel_2_country_race(ae_reels_dir / f"reel_2_country_bar_race_transparent{ext}", fonts, chron_athletes, transparent=True)
                 self.render_reel_3_annual_surge(ae_reels_dir / f"reel_3_annual_sub4_surge_transparent{ext}", fonts, transparent=True)
                 self.render_reel_4_first_sub4_stopwatch(ae_reels_dir / f"reel_4_first_sub4_stopwatch_transparent{ext}", fonts, chron_athletes, transparent=True)
+                self.render_reel_5_first_sub4_by_month(ae_reels_dir / f"reel_5_first_sub4_by_month_transparent{ext}", fonts, chron_athletes, transparent=True)
             self.stdout.write(self.style.SUCCESS(f"Transparent reels generated in {ae_reels_dir}"))
             return
 
@@ -187,6 +188,7 @@ class Command(BaseCommand):
             self.render_reel_2_country_race(reels_dir / "reel_2_country_bar_race.mp4", fonts, chron_athletes)
             self.render_reel_3_annual_surge(reels_dir / "reel_3_annual_sub4_surge.mp4", fonts)
             self.render_reel_4_first_sub4_stopwatch(reels_dir / "reel_4_first_sub4_stopwatch.mp4", fonts, chron_athletes)
+            self.render_reel_5_first_sub4_by_month(reels_dir / "reel_5_first_sub4_by_month.mp4", fonts, chron_athletes)
 
         self.stdout.write(self.style.SUCCESS(f"All Instagram assets generated in {out_root}"))
 
@@ -1046,3 +1048,139 @@ class Command(BaseCommand):
 
         proc.stdin.close()
         proc.wait()
+
+    # ------------------------------------------------------------------
+    # REEL 5: FIRST SUB-4 DEBUTS BY MONTH OF YEAR (1954 -> 2026)
+    # ------------------------------------------------------------------
+    def render_reel_5_first_sub4_by_month(self, out_path: Path, fonts: dict, chron_athletes: list[dict], transparent: bool = False):
+        W, H, FPS = 1080, 1920, 30
+        if transparent:
+            base_canvas = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+            y_top = 310
+            card_bg = (239, 233, 220, 235)
+            track_bg = (24, 23, 21, 24)
+        else:
+            base_canvas = make_paper_canvas(W, H)
+            base_draw = ImageDraw.Draw(base_canvas)
+            y_top = draw_header(
+                base_draw, W, fonts,
+                kicker="Sub 4 Data Animation · Reel 05",
+                title="FIRST SUB-4 BY MONTH",
+                subtitle="Cumulative Sub-4:00 Mile Debuts by Month (1954–2026)",
+            )
+            draw_footer(base_draw, W, H, fonts, f"SOURCE: SUB 4 REGISTER · {len(chron_athletes):,} DATED DEBUTS")
+            card_bg = BG_CARD
+            track_bg = (224, 217, 203, 255)
+
+        month_names = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+        indoor_months = {1, 2, 12}
+        off_months = {10, 11}
+        muted_col = (115, 108, 98, 255)
+
+        years = list(range(1954, 2027))
+        yearly_counts = {}
+        yearly_total = {}
+        running = {m: 0 for m in range(1, 13)}
+        idx = 0
+        n_ath = len(chron_athletes)
+        for yr in years:
+            while idx < n_ath and chron_athletes[idx]["date"].year <= yr:
+                m = chron_athletes[idx]["date"].month
+                running[m] += 1
+                idx += 1
+            yearly_counts[yr] = dict(running)
+            yearly_total[yr] = idx
+
+        milestones = [
+            (1954, "1954–1999: Summer outdoor track (JUN–AUG) dominates"),
+            (2000, "2000: Last NOV debuts fade out — 0 since 2000"),
+            (2012, "2012+: Fast 200m indoor tracks spark JAN/FEB boom"),
+            (2020, "2020s: FEB surges to 612 all-time · NOV stays at 9"),
+        ]
+
+        total_frames = 18 * FPS
+        hold_frames = 3 * FPS
+        proc = self._open_ffmpeg_writer(out_path, W, H, FPS, alpha=transparent)
+
+        for f_idx in range(total_frames + hold_frames):
+            progress = min(1.0, f_idx / max(1, total_frames - 1))
+            yr_float = 1954 + progress * (2026 - 1954)
+            yr_lo = int(math.floor(yr_float))
+            yr_hi = min(2026, yr_lo + 1)
+            alpha = yr_float - yr_lo
+
+            c_lo = yearly_counts[yr_lo]
+            c_hi = yearly_counts[yr_hi]
+            interp = {
+                m: (1.0 - alpha) * c_lo[m] + alpha * c_hi[m]
+                for m in range(1, 13)
+            }
+            max_val = max(interp.values(), default=1.0) or 1.0
+            tot_runners = (1.0 - alpha) * yearly_total[yr_lo] + alpha * yearly_total[yr_hi]
+            winter_sum = interp[1] + interp[2] + interp[12]
+            winter_pct = (winter_sum / max(tot_runners, 1.0)) * 100.0
+
+            frame = base_canvas.copy()
+            draw = ImageDraw.Draw(frame)
+
+            y = y_top
+            draw.rectangle([76, y, W - 76, y + 185], fill=card_bg, outline=INK_BLACK, width=2)
+            draw.text((108, y + 22), "SEASON", font=fonts["bold_xs"], fill=INK_MUTED)
+            draw.text((108, y + 54), str(yr_lo), font=fonts["mono_xxl"], fill=ACCENT_RED)
+            draw.text((430, y + 22), "FIRST SUB-4 DEBUTS", font=fonts["bold_xs"], fill=INK_MUTED)
+            draw.text((430, y + 58), f"{int(round(tot_runners)):,}", font=fonts["mono_xl"], fill=INK_BLACK)
+            draw.text((430, y + 132), f"WINTER INDOOR (DEC–FEB): {winter_pct:.1f}%", font=fonts["mono_xs"], fill=ACCENT_RED)
+
+            y += 218
+            # Compact color legend
+            draw.rectangle([76, y + 4, 96, y + 24], fill=ACCENT_RED)
+            draw.text((106, y + 2), "INDOOR WINTER", font=fonts["bold_xs"], fill=ACCENT_RED)
+            draw.rectangle([340, y + 4, 360, y + 24], fill=INK_BLACK)
+            draw.text((370, y + 2), "OUTDOOR", font=fonts["bold_xs"], fill=INK_BLACK)
+            draw.rectangle([535, y + 4, 555, y + 24], fill=muted_col)
+            draw.text((565, y + 2), "OFF-SEASON (OCT–NOV)", font=fonts["bold_xs"], fill=muted_col)
+
+            y += 42
+            row_h = 78
+            bar_x0 = 185
+            bar_max_w = W - bar_x0 - 170
+
+            for m in range(1, 13):
+                val = interp[m]
+                c_disp = int(round(val))
+                bw = int((val / max_val) * bar_max_w)
+                if m in indoor_months:
+                    col = ACCENT_RED
+                elif m in off_months:
+                    col = muted_col
+                else:
+                    col = INK_BLACK
+
+                draw.text((84, y + 14), month_names[m - 1], font=fonts["mono_md"], fill=col)
+                draw.rectangle([bar_x0, y + 10, bar_x0 + bar_max_w, y + row_h - 16], fill=track_bg)
+                if c_disp > 0 or val > 0.1:
+                    draw.rectangle([bar_x0, y + 10, bar_x0 + max(bw, 8), y + row_h - 16], fill=col)
+                label_txt = f"{c_disp:,}"
+                if m == 11 and yr_lo >= 2000:
+                    label_txt = f"{c_disp:,} (0 SINCE 2000)"
+                if c_disp > 0:
+                    draw.text((bar_x0 + max(bw, 8) + 14, y + 14), label_txt, font=fonts["mono_sm"], fill=col)
+                elif m == 11:
+                    draw.text((bar_x0 + 14, y + 14), "0", font=fonts["mono_sm"], fill=col)
+                y += row_h
+
+            active_m = milestones[0][1]
+            for m_yr, m_txt in milestones:
+                if yr_lo >= m_yr:
+                    active_m = m_txt
+
+            box_y = H - 255
+            draw.rectangle([76, box_y, W - 76, box_y + 130], fill=card_bg, outline=ACCENT_RED, width=3)
+            draw.text((104, box_y + 20), "SEASONALITY SHIFT", font=fonts["bold_xs"], fill=ACCENT_RED)
+            draw.text((104, box_y + 62), active_m[:56], font=fonts["mono_sm"], fill=INK_BLACK)
+
+            proc.stdin.write(frame.tobytes())
+
+        proc.stdin.close()
+        proc.wait()
+
